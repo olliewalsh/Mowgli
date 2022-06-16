@@ -23,6 +23,13 @@ extern "C" {
     #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
     // #define PANEL_TYPE_YARDFORCE_900_ECO   1
 
+    #ifdef OPENMOWER_INTERFACE
+        // OpenMower expects 993 ticks per revolution, we get 165
+        #define TICK_MULTIPLIER 6
+    #else
+        #define TICK_MULTIPLIER 1
+    #endif
+
     // if voltage is greater than this assume we are docked
     #define MIN_CHARGE_VOLTAGE 5.0
     // must provide at least MIN_CHARGE_VOLTAGE when docked

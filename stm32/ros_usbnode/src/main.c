@@ -445,7 +445,7 @@ int main(void)
             {
                 prev_left_encoder_val = 0;
             }
-            left_encoder_ticks += left_direction * (left_encoder_val - prev_left_encoder_val);
+            left_encoder_ticks += TICK_MULTIPLIER * (left_direction * (left_encoder_val - prev_left_encoder_val));
             prev_left_encoder_val = left_encoder_val;
             prev_left_wheel_speed_val = left_wheel_speed_val;
             prev_left_direction = left_direction;
@@ -455,7 +455,7 @@ int main(void)
             {
                 prev_right_encoder_val = 0;
             }
-            right_encoder_ticks += right_direction * (right_encoder_val - prev_right_encoder_val);
+            right_encoder_ticks += TICK_MULTIPLIER * (right_direction * (right_encoder_val - prev_right_encoder_val));
             prev_right_encoder_val = right_encoder_val;
             prev_right_wheel_speed_val = right_wheel_speed_val;
             prev_right_direction = right_direction;
