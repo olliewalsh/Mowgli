@@ -4,6 +4,18 @@
 
 [Check here how to do that ...](../mainboard_firmware), only then continue.
 
+## Generate ROS headers
+
+- Install the rosserial arduino packages
+```
+sudo apt-get install ros-noetic-rosserial-arduino
+```
+- Generate ros_lib from existing OpenMower devel build
+```
+cd src/ros
+OPENMOWER_ROS_DIR=<path to openmower ROS> ./generate_ros_lib.sh
+```
+
 ## Platform.IO - compile and upload
 
 - Start VS Code and open the project in platform.io.
