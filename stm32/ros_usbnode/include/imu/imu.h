@@ -12,7 +12,7 @@ extern "C" {
  * IMU functions that a compatible IMU needs to be able to provide
  */
 
-uint8_t IMU_TestDevice(void);           // test of existence of IMU and if possible functioning 
+uint8_t IMU_TestDevice(void);           // test of existence of IMU and if possible functioning
 void IMU_Init(void);                    // initialize IMU (make settings, ready to fetch readings
 
 void IMU_ReadAccelerometer(float *x, float *y, float *z);

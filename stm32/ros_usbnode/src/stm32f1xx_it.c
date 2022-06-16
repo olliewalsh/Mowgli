@@ -210,7 +210,7 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 
- 
+
 /**
   * @brief This function handles USART1 global interrupt.
   */
@@ -230,14 +230,14 @@ void SysTick_Handler(void)
   * @brief This function handles UART global interrupt.
   */
   void USART2_IRQHandler(void)
-  {    
-    
-    uint32_t status = USART2->SR;
-    if (status & USART_SR_ORE){ // overrun error      
-      cnt_usart2_overrun++;      
-    }    
+  {
 
-    HAL_UART_IRQHandler(&DRIVEMOTORS_USART_Handler);    
+    uint32_t status = USART2->SR;
+    if (status & USART_SR_ORE){ // overrun error
+      cnt_usart2_overrun++;
+    }
+
+    HAL_UART_IRQHandler(&DRIVEMOTORS_USART_Handler);
   }
 
 
@@ -247,8 +247,8 @@ void SysTick_Handler(void)
 
 
   void UART4_IRQHandler(void)
-  {           
-    HAL_UART_IRQHandler(&MASTER_USART_Handler);   
+  {
+    HAL_UART_IRQHandler(&MASTER_USART_Handler);
   }
 
 

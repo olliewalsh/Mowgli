@@ -35,7 +35,7 @@
 #include "mowgli/magnetometer.h"
 
 
-#define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s 
+#define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s
 #define PWM_PER_MPS 300.0		// PWM value of 300 means 1 m/s bot speed
 
 #define WHEEL_BASE  0.325		// The distance between the center of the wheels in meters
@@ -167,12 +167,12 @@ static nbt_t broadcast_nbt;
  * if True, turns ON the Blade Motor - (False is ignored, use the cmd_blade_off with a True message to turn it off)
  */
 extern "C" void CommandBladeOnMessageCb(const std_msgs::Bool& msg)
-{	
-	debug_printf("/cmd_blade_on: %d\r\n", msg.data);
-	if (msg.data)
-	{
-		blade_on_off = true;
-	}
+{
+    debug_printf("/cmd_blade_on: %d\r\n", msg.data);
+    if (msg.data)
+    {
+        blade_on_off = true;
+    }
 }
 
 /*
@@ -180,12 +180,12 @@ extern "C" void CommandBladeOnMessageCb(const std_msgs::Bool& msg)
  * if True, turns OFF the Blade Motor - (False is ignored, use the cmd_blade_on with a True message to turn it ON)
  */
 extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg)
-{	
-	debug_printf("/cmd_blade_off: %d\r\n", msg.data);
-	if (msg.data)
-	{
-		blade_on_off = false;
-	}
+{
+    debug_printf("/cmd_blade_off: %d\r\n", msg.data);
+    if (msg.data)
+    {
+        blade_on_off = false;
+    }
 }
 
 
@@ -195,52 +195,52 @@ extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg)
  */
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg)
 {
-		last_cmd_vel = nh.now();
+        last_cmd_vel = nh.now();
 
-		//	debug_printf("x: %f  z: %f\r\n", msg.linear.x, msg.angular.z);
+        //	debug_printf("x: %f  z: %f\r\n", msg.linear.x, msg.angular.z);
 
-		// calculate twist speeds to add/substract 
-		float left_twist_mps = -1.0 * msg.angular.z * WHEEL_BASE * 0.5;
-		float right_twist_mps =  msg.angular.z * WHEEL_BASE * 0.5;
-    
+        // calculate twist speeds to add/substract
+        float left_twist_mps = -1.0 * msg.angular.z * WHEEL_BASE * 0.5;
+        float right_twist_mps =  msg.angular.z * WHEEL_BASE * 0.5;
 
-		// add them to the linear speed 
-		float left_mps = msg.linear.x + left_twist_mps;
+
+        // add them to the linear speed
+        float left_mps = msg.linear.x + left_twist_mps;
         float right_mps = msg.linear.x + right_twist_mps;
 
-		// cap left motor speed to MAX_MPS
-		if (left_mps > MAX_MPS)
-		{
-			left_mps = MAX_MPS;
-		}
-		else if (left_mps < -1*MAX_MPS)
-		{
-			left_mps = -1*MAX_MPS;
-		}
-		// cap right motor speed to MAX_MPS
-		if (right_mps > MAX_MPS)
-		{
-			right_mps = MAX_MPS;
-		}
-		else if (right_mps < -1*MAX_MPS)
-		{
-			right_mps = -1*MAX_MPS;
-		}
+        // cap left motor speed to MAX_MPS
+        if (left_mps > MAX_MPS)
+        {
+            left_mps = MAX_MPS;
+        }
+        else if (left_mps < -1*MAX_MPS)
+        {
+            left_mps = -1*MAX_MPS;
+        }
+        // cap right motor speed to MAX_MPS
+        if (right_mps > MAX_MPS)
+        {
+            right_mps = MAX_MPS;
+        }
+        else if (right_mps < -1*MAX_MPS)
+        {
+            right_mps = -1*MAX_MPS;
+        }
 
-		// set directions		
-		left_dir = (left_mps >= 0)?1:0;
-		right_dir = (right_mps >= 0)?1:0;
+        // set directions
+        left_dir = (left_mps >= 0)?1:0;
+        right_dir = (right_mps >= 0)?1:0;
 
-		// set drivemotors PWM values
-		left_speed = abs(left_mps * PWM_PER_MPS);
-		right_speed = abs(right_mps * PWM_PER_MPS);		
+        // set drivemotors PWM values
+        left_speed = abs(left_mps * PWM_PER_MPS);
+        right_speed = abs(right_mps * PWM_PER_MPS);
 
-	//	debug_printf("left_mps: %f (%c)  right_mps: %f (%c)\r\n", left_mps, left_dir?'F':'R', right_mps, right_dir?'F':'R');
+    //	debug_printf("left_mps: %f (%c)  right_mps: %f (%c)\r\n", left_mps, left_dir?'F':'R', right_mps, right_dir?'F':'R');
 }
 
 extern "C" void cdc_receive_put(uint8_t value)
 {
-	ringbuffer_putchar(&rb, value);
+    ringbuffer_putchar(&rb, value);
 }
 
 
@@ -249,34 +249,34 @@ extern "C" void cdc_receive_put(uint8_t value)
  */
 extern "C" void chatter_handler()
 {
-	  if (NBT_handler(&publish_nbt))
-	  {
-		  /*
-		  char version[] = "version: 0.1";
-		  str_msg.data = version;
-		  chatter.publish(&str_msg);
-		  */
-		  
-		  f32_battery_voltage_msg.data = battery_voltage;
-		  pubBatteryVoltage.publish(&f32_battery_voltage_msg);
+      if (NBT_handler(&publish_nbt))
+      {
+          /*
+          char version[] = "version: 0.1";
+          str_msg.data = version;
+          chatter.publish(&str_msg);
+          */
 
-		  f32_charge_voltage_msg.data = charge_voltage;
-		  pubChargeVoltage.publish(&f32_charge_voltage_msg);
+          f32_battery_voltage_msg.data = battery_voltage;
+          pubBatteryVoltage.publish(&f32_battery_voltage_msg);
 
-		  f32_charge_current_msg.data = charge_current;
-		  pubChargeCurrent.publish(&f32_charge_current_msg);
+          f32_charge_voltage_msg.data = charge_voltage;
+          pubChargeVoltage.publish(&f32_charge_voltage_msg);
 
-		  int16_charge_pwm_msg.data = chargecontrol_pwm_val;
-		  pubChargePWM.publish(&int16_charge_pwm_msg);
+          f32_charge_current_msg.data = charge_current;
+          pubChargeCurrent.publish(&f32_charge_current_msg);
 
-		  bool_charging_state_msg.data =  chargecontrol_is_charging;
-		  pubChargeingState.publish(&bool_charging_state_msg);
+          int16_charge_pwm_msg.data = chargecontrol_pwm_val;
+          pubChargePWM.publish(&int16_charge_pwm_msg);
 
- 		  //bool_blade_state_msg.data = true; // TODO: read blade status
+          bool_charging_state_msg.data =  chargecontrol_is_charging;
+          pubChargeingState.publish(&bool_charging_state_msg);
+
+          //bool_blade_state_msg.data = true; // TODO: read blade status
 //		  pubBladeState.publish(&bool_blade_state_msg);
 
-		  HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED
-	  }
+          HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED
+      }
 }
 
 /*
@@ -285,29 +285,29 @@ extern "C" void chatter_handler()
  */
 extern "C" void motors_handler()
 {
-	  if (NBT_handler(&motors_nbt))
-	  {
-		if (emergency_state)
-		{
-			setDriveMotors(0,0,0,0);
-			setBladeMotor(0);
-		}
-		else {
-			last_cmd_vel_age = nh.now().sec - last_cmd_vel.sec;
-			if (last_cmd_vel_age > 1) {
-				setDriveMotors(0, 0, left_dir, right_dir);
-			}
-			else {
-				setDriveMotors(left_speed, right_speed, left_dir, right_dir);
-			}
-			if (last_cmd_vel_age > 25) {
-				setBladeMotor(0);
-			}
-			else {
-				setBladeMotor(blade_on_off);
-			}
-		}
-	  }
+      if (NBT_handler(&motors_nbt))
+      {
+        if (emergency_state)
+        {
+            setDriveMotors(0,0,0,0);
+            setBladeMotor(0);
+        }
+        else {
+            last_cmd_vel_age = nh.now().sec - last_cmd_vel.sec;
+            if (last_cmd_vel_age > 1) {
+                setDriveMotors(0, 0, left_dir, right_dir);
+            }
+            else {
+                setDriveMotors(left_speed, right_speed, left_dir, right_dir);
+            }
+            if (last_cmd_vel_age > 25) {
+                setBladeMotor(0);
+            }
+            else {
+                setBladeMotor(blade_on_off);
+            }
+        }
+      }
 }
 
 /*
@@ -315,186 +315,186 @@ extern "C" void motors_handler()
  */
 extern "C" void panel_handler()
 {
-	  if (NBT_handler(&panel_nbt))
-	  {			  
-		PANEL_Tick();		
-	  }
+      if (NBT_handler(&panel_nbt))
+      {
+        PANEL_Tick();
+      }
 }
 
 extern "C" void broadcast_handler()
 {
-	  if (NBT_handler(&broadcast_nbt))
-	  {		
-		// z = BROADCAST_NBT_TIME_MS/1000;
-		// x = right_wheel_speed_val;
-		// y = left_wheel_speed_val;
-		current_time = nh.now();
-		//////////////////////////////////////////////////
-		// TF message
-		//////////////////////////////////////////////////
-		speed_act_left = left_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
-		speed_act_right = right_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
-		// debug_printf("speed_act_left: %f speed_act_right: %f\r\n",  speed_act_left, speed_act_right);		
-		dt = (BROADCAST_NBT_TIME_MS/1000.0);
-		dxy = (speed_act_left+speed_act_right)*dt/2.0;
-		dth = - 1.0 * ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
+      if (NBT_handler(&broadcast_nbt))
+      {
+        // z = BROADCAST_NBT_TIME_MS/1000;
+        // x = right_wheel_speed_val;
+        // y = left_wheel_speed_val;
+        current_time = nh.now();
+        //////////////////////////////////////////////////
+        // TF message
+        //////////////////////////////////////////////////
+        speed_act_left = left_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
+        speed_act_right = right_wheel_speed_val/PWM_PER_MPS;			// wheel speed in m/s
+        // debug_printf("speed_act_left: %f speed_act_right: %f\r\n",  speed_act_left, speed_act_right);
+        dt = (BROADCAST_NBT_TIME_MS/1000.0);
+        dxy = (speed_act_left+speed_act_right)*dt/2.0;
+        dth = - 1.0 * ((speed_act_right-speed_act_left)*dt)/WHEEL_BASE;
 
-		//debug_printf("dt: %f dxy: %f dth: %f\r\n",  dt, dxy, dth);		
+        //debug_printf("dt: %f dxy: %f dth: %f\r\n",  dt, dxy, dth);
 
-		if (dth > 0) dth *= angular_scale_positive;
-    	if (dth < 0) dth *= angular_scale_negative;
-    	if (dxy > 0) dxy *= linear_scale_positive;
-    	if (dxy < 0) dxy *= linear_scale_negative;
+        if (dth > 0) dth *= angular_scale_positive;
+        if (dth < 0) dth *= angular_scale_negative;
+        if (dxy > 0) dxy *= linear_scale_positive;
+        if (dxy < 0) dxy *= linear_scale_negative;
 
-    	dx = cos(dth) * dxy;
-    	dy = sin(dth) * dxy;
+        dx = cos(dth) * dxy;
+        dy = sin(dth) * dxy;
 
-    	x_pos += (cos(theta) * dx - sin(theta) * dy);
-    	y_pos += (sin(theta) * dx + cos(theta) * dy);
-    	theta += dth;
+        x_pos += (cos(theta) * dx - sin(theta) * dy);
+        y_pos += (sin(theta) * dx + cos(theta) * dy);
+        theta += dth;
 
-    	if(theta >= two_pi) theta -= two_pi;
-    	if(theta <= -two_pi) theta += two_pi;
+        if(theta >= two_pi) theta -= two_pi;
+        if(theta <= -two_pi) theta += two_pi;
 
-		quat = tf::createQuaternionFromYaw(theta);
-		if(publish_tf) {
-			geometry_msgs::TransformStamped t;						
-			t.header.frame_id = odom;
-			t.child_frame_id = base_link;
-			t.transform.translation.x = x_pos;
-			t.transform.translation.y = y_pos;
-			t.transform.translation.z = 0.0;
-			t.transform.rotation = quat;
-			t.header.stamp = current_time;					
-			broadcaster.sendTransform(t);			
-		}
-		//////////////////////////////////////////////////
-		// odom message
-		//////////////////////////////////////////////////
-		odom_msg.header.stamp = current_time;
-		odom_msg.header.frame_id = odom;
-		odom_msg.pose.pose.position.x = x_pos;
-		odom_msg.pose.pose.position.y = y_pos;
-		odom_msg.pose.pose.position.z = 0.0;
-		odom_msg.pose.pose.orientation = quat;
-		if (speed_act_left == 0 && speed_act_right == 0){
-			odom_msg.pose.covariance[0] = 1e-9;
-			odom_msg.pose.covariance[7] = 1e-3;
-			odom_msg.pose.covariance[8] = 1e-9;
-			odom_msg.pose.covariance[14] = 1e6;
-			odom_msg.pose.covariance[21] = 1e6;
-			odom_msg.pose.covariance[28] = 1e6;
-			odom_msg.pose.covariance[35] = 1e-9;
-			odom_msg.twist.covariance[0] = 1e-9;
-			odom_msg.twist.covariance[7] = 1e-3;
-			odom_msg.twist.covariance[8] = 1e-9;
-			odom_msg.twist.covariance[14] = 1e6;
-			odom_msg.twist.covariance[21] = 1e6;
-			odom_msg.twist.covariance[28] = 1e6;
-			odom_msg.twist.covariance[35] = 1e-9;
-		}
-		else{
-			odom_msg.pose.covariance[0] = 1e-3;
-			odom_msg.pose.covariance[7] = 1e-3;
-			odom_msg.pose.covariance[8] = 0.0;
-			odom_msg.pose.covariance[14] = 1e6;
-			odom_msg.pose.covariance[21] = 1e6;
-			odom_msg.pose.covariance[28] = 1e6;
-			odom_msg.pose.covariance[35] = 1e3;
-			odom_msg.twist.covariance[0] = 1e-3;
-			odom_msg.twist.covariance[7] = 1e-3;
-			odom_msg.twist.covariance[8] = 0.0;
-			odom_msg.twist.covariance[14] = 1e6;
-			odom_msg.twist.covariance[21] = 1e6;
-			odom_msg.twist.covariance[28] = 1e6;
-			odom_msg.twist.covariance[35] = 1e3;
-		}
-		vx = (dt == 0)?  0 : (speed_act_left+speed_act_right)/2.0;
-	//	vth = (dt == 0)? 0 : (speed_act_right-speed_act_left)/WHEEL_BASE;
-		odom_msg.child_frame_id = base_link;
-		odom_msg.twist.twist.linear.x = vx;
-		odom_msg.twist.twist.linear.y = 0.0;
-		odom_msg.twist.twist.angular.z = dth;
-		pubOdom.publish(&odom_msg);
+        quat = tf::createQuaternionFromYaw(theta);
+        if(publish_tf) {
+            geometry_msgs::TransformStamped t;
+            t.header.frame_id = odom;
+            t.child_frame_id = base_link;
+            t.transform.translation.x = x_pos;
+            t.transform.translation.y = y_pos;
+            t.transform.translation.z = 0.0;
+            t.transform.rotation = quat;
+            t.header.stamp = current_time;
+            broadcaster.sendTransform(t);
+        }
+        //////////////////////////////////////////////////
+        // odom message
+        //////////////////////////////////////////////////
+        odom_msg.header.stamp = current_time;
+        odom_msg.header.frame_id = odom;
+        odom_msg.pose.pose.position.x = x_pos;
+        odom_msg.pose.pose.position.y = y_pos;
+        odom_msg.pose.pose.position.z = 0.0;
+        odom_msg.pose.pose.orientation = quat;
+        if (speed_act_left == 0 && speed_act_right == 0){
+            odom_msg.pose.covariance[0] = 1e-9;
+            odom_msg.pose.covariance[7] = 1e-3;
+            odom_msg.pose.covariance[8] = 1e-9;
+            odom_msg.pose.covariance[14] = 1e6;
+            odom_msg.pose.covariance[21] = 1e6;
+            odom_msg.pose.covariance[28] = 1e6;
+            odom_msg.pose.covariance[35] = 1e-9;
+            odom_msg.twist.covariance[0] = 1e-9;
+            odom_msg.twist.covariance[7] = 1e-3;
+            odom_msg.twist.covariance[8] = 1e-9;
+            odom_msg.twist.covariance[14] = 1e6;
+            odom_msg.twist.covariance[21] = 1e6;
+            odom_msg.twist.covariance[28] = 1e6;
+            odom_msg.twist.covariance[35] = 1e-9;
+        }
+        else{
+            odom_msg.pose.covariance[0] = 1e-3;
+            odom_msg.pose.covariance[7] = 1e-3;
+            odom_msg.pose.covariance[8] = 0.0;
+            odom_msg.pose.covariance[14] = 1e6;
+            odom_msg.pose.covariance[21] = 1e6;
+            odom_msg.pose.covariance[28] = 1e6;
+            odom_msg.pose.covariance[35] = 1e3;
+            odom_msg.twist.covariance[0] = 1e-3;
+            odom_msg.twist.covariance[7] = 1e-3;
+            odom_msg.twist.covariance[8] = 0.0;
+            odom_msg.twist.covariance[14] = 1e6;
+            odom_msg.twist.covariance[21] = 1e6;
+            odom_msg.twist.covariance[28] = 1e6;
+            odom_msg.twist.covariance[35] = 1e3;
+        }
+        vx = (dt == 0)?  0 : (speed_act_left+speed_act_right)/2.0;
+    //	vth = (dt == 0)? 0 : (speed_act_right-speed_act_left)/WHEEL_BASE;
+        odom_msg.child_frame_id = base_link;
+        odom_msg.twist.twist.linear.x = vx;
+        odom_msg.twist.twist.linear.y = 0.0;
+        odom_msg.twist.twist.angular.z = dth;
+        pubOdom.publish(&odom_msg);
 
-		// pub encoder values as well
-		left_encoder_ticks_msg.data = left_encoder_ticks;
-		pubLeftEncoderTicks.publish(&left_encoder_ticks_msg);
-		right_encoder_ticks_msg.data = right_encoder_ticks;
-		pubRightEncoderTicks.publish(&right_encoder_ticks_msg);
+        // pub encoder values as well
+        left_encoder_ticks_msg.data = left_encoder_ticks;
+        pubLeftEncoderTicks.publish(&left_encoder_ticks_msg);
+        right_encoder_ticks_msg.data = right_encoder_ticks;
+        pubRightEncoderTicks.publish(&right_encoder_ticks_msg);
 /*
-		double dx = 0.2;
-		double dtheta = 0.18;
+        double dx = 0.2;
+        double dtheta = 0.18;
 
-		x += cos(theta)*dx*0.1;
-		y += sin(theta)*dx*0.1;
-		theta += dtheta*0.1;
-		if (theta > 3.14)
-		  	theta = -3.14;
-		t.header.frame_id = odom;
-		t.child_frame_id = base_link;
-		t.transform.translation.x = x;
-		t.transform.translation.y = y;
-		t.transform.rotation = tf::createQuaternionFromYaw(theta);
-		t.header.stamp = nh.now();
-		
-		broadcaster.sendTransform(t);		
-*/		
+        x += cos(theta)*dx*0.1;
+        y += sin(theta)*dx*0.1;
+        theta += dtheta*0.1;
+        if (theta > 3.14)
+            theta = -3.14;
+        t.header.frame_id = odom;
+        t.child_frame_id = base_link;
+        t.transform.translation.x = x;
+        t.transform.translation.y = y;
+        t.transform.rotation = tf::createQuaternionFromYaw(theta);
+        t.header.stamp = nh.now();
 
-
-		////////////////////////////////////////
-		// IMU		
-		////////////////////////////////////////
-		float imu_x,imu_y,imu_z;
-
-		imu_msg.header.frame_id = "imu";
-		imu_msg.header.stamp = current_time;
-		 // Linear acceleration		
-		IMU_ReadAccelerometer(&imu_x, &imu_y, &imu_z);
-		imu_msg.linear_acceleration.x = imu_x;
-		imu_msg.linear_acceleration.y = imu_y;
-		imu_msg.linear_acceleration.z = imu_z;
-		/*
-		imu_msg.linear_acceleration_covariance[0] = 1e-3;
-		imu_msg.linear_acceleration_covariance[4] = 1e-3;
-		imu_msg.linear_acceleration_covariance[8] = 1e-3;
-		*/
-		// Angular velocity
-		IMU_ReadGyro(&imu_x, &imu_y, &imu_z);
-		imu_msg.angular_velocity.x = imu_x;
-		imu_msg.angular_velocity.y = imu_y;
-		imu_msg.angular_velocity.z = imu_z;
-		/*
-		imu_msg.angular_velocity_covariance[0] = 1e-3;
-		imu_msg.angular_velocity_covariance[4] = 1e-3;
-		imu_msg.angular_velocity_covariance[8] = 1e-3;
-		*/
-		pubIMU.publish(&imu_msg);
-
-		// Orientation (Magnetometer)
-		imu_mag_msg.header.frame_id = "imu";
-		imu_mag_msg.header.stamp = current_time;		
-	 	IMU_ReadMagnetometer(&imu_x, &imu_y, &imu_z);
-		imu_mag_msg.magnetic_field.x = imu_x;
-		imu_mag_msg.magnetic_field.y = imu_y;
-		imu_mag_msg.magnetic_field.z = imu_z;
-		pubIMUMag.publish(&imu_mag_msg);
-
-		// Calibration (Magnetometer)
-		imu_mag_msg.header.frame_id = "imu";
-		imu_mag_msg.header.stamp = current_time;
-		IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);
-		imu_mag_calibration_msg.magnetic_field.x = imu_x;
-		imu_mag_calibration_msg.magnetic_field.y = imu_y;
-		imu_mag_calibration_msg.magnetic_field.z = imu_z;		
-		pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects 
+        broadcaster.sendTransform(t);
+*/
 
 
-		//imu_mag_calibration_msg.x = imu_x;
-		//imu_mag_calibration_msg.y = imu_y;
-		//imu_mag_calibration_msg.z = imu_z;
-		//pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects 
-	  }
+        ////////////////////////////////////////
+        // IMU
+        ////////////////////////////////////////
+        float imu_x,imu_y,imu_z;
+
+        imu_msg.header.frame_id = "imu";
+        imu_msg.header.stamp = current_time;
+         // Linear acceleration
+        IMU_ReadAccelerometer(&imu_x, &imu_y, &imu_z);
+        imu_msg.linear_acceleration.x = imu_x;
+        imu_msg.linear_acceleration.y = imu_y;
+        imu_msg.linear_acceleration.z = imu_z;
+        /*
+        imu_msg.linear_acceleration_covariance[0] = 1e-3;
+        imu_msg.linear_acceleration_covariance[4] = 1e-3;
+        imu_msg.linear_acceleration_covariance[8] = 1e-3;
+        */
+        // Angular velocity
+        IMU_ReadGyro(&imu_x, &imu_y, &imu_z);
+        imu_msg.angular_velocity.x = imu_x;
+        imu_msg.angular_velocity.y = imu_y;
+        imu_msg.angular_velocity.z = imu_z;
+        /*
+        imu_msg.angular_velocity_covariance[0] = 1e-3;
+        imu_msg.angular_velocity_covariance[4] = 1e-3;
+        imu_msg.angular_velocity_covariance[8] = 1e-3;
+        */
+        pubIMU.publish(&imu_msg);
+
+        // Orientation (Magnetometer)
+        imu_mag_msg.header.frame_id = "imu";
+        imu_mag_msg.header.stamp = current_time;
+        IMU_ReadMagnetometer(&imu_x, &imu_y, &imu_z);
+        imu_mag_msg.magnetic_field.x = imu_x;
+        imu_mag_msg.magnetic_field.y = imu_y;
+        imu_mag_msg.magnetic_field.z = imu_z;
+        pubIMUMag.publish(&imu_mag_msg);
+
+        // Calibration (Magnetometer)
+        imu_mag_msg.header.frame_id = "imu";
+        imu_mag_msg.header.stamp = current_time;
+        IMU_ReadMagnetometerRaw(&imu_x, &imu_y, &imu_z);
+        imu_mag_calibration_msg.magnetic_field.x = imu_x;
+        imu_mag_calibration_msg.magnetic_field.y = imu_y;
+        imu_mag_calibration_msg.magnetic_field.z = imu_z;
+        pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects
+
+
+        //imu_mag_calibration_msg.x = imu_x;
+        //imu_mag_calibration_msg.y = imu_y;
+        //imu_mag_calibration_msg.z = imu_z;
+        //pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects
+      }
 }
 
 /*
@@ -502,48 +502,48 @@ extern "C" void broadcast_handler()
  */
 extern "C" void spinOnce()
 {
-	  if (NBT_handler(&ros_nbt))
-	  {
-			nh.spinOnce();
-	  }
+      if (NBT_handler(&ros_nbt))
+      {
+            nh.spinOnce();
+      }
 }
 
-/* 
+/*
  *  Initialize rosserial
  */
 extern "C" void init_ROS()
 {
-	ringbuffer_init(&rb, RxBuffer, RxBufferSize);
+    ringbuffer_init(&rb, RxBuffer, RxBufferSize);
 
-	// Initialize ROS
-	nh.initNode();
+    // Initialize ROS
+    nh.initNode();
 
-	// Initialize TF Broadcaster
-	broadcaster.init(nh);
+    // Initialize TF Broadcaster
+    broadcaster.init(nh);
 
-	// Initialize Pubs
-	nh.advertise(pubBatteryVoltage);
-	nh.advertise(pubChargeVoltage);
-	nh.advertise(pubChargeCurrent);
-	nh.advertise(pubChargePWM);
-	nh.advertise(pubOdom);
-	nh.advertise(pubBladeState);
-	nh.advertise(pubChargeingState);
-	nh.advertise(pubLeftEncoderTicks);
-	nh.advertise(pubRightEncoderTicks);
-	nh.advertise(pubIMU);
-	nh.advertise(pubIMUMag);
-	nh.advertise(pubIMUMagCalibration);
-	
-	// Initialize Subs
-	nh.subscribe(subCommandVelocity);
-	nh.subscribe(subBladeOn);
-	nh.subscribe(subBladeOff);
+    // Initialize Pubs
+    nh.advertise(pubBatteryVoltage);
+    nh.advertise(pubChargeVoltage);
+    nh.advertise(pubChargeCurrent);
+    nh.advertise(pubChargePWM);
+    nh.advertise(pubOdom);
+    nh.advertise(pubBladeState);
+    nh.advertise(pubChargeingState);
+    nh.advertise(pubLeftEncoderTicks);
+    nh.advertise(pubRightEncoderTicks);
+    nh.advertise(pubIMU);
+    nh.advertise(pubIMUMag);
+    nh.advertise(pubIMUMagCalibration);
 
-	// Initialize Timers
-	NBT_init(&publish_nbt, 1000);
-	NBT_init(&panel_nbt, 100);
-	NBT_init(&motors_nbt, BROADCAST_NBT_TIME_MS);
-	NBT_init(&broadcast_nbt, BROADCAST_NBT_TIME_MS);
-	NBT_init(&ros_nbt, 10);	
+    // Initialize Subs
+    nh.subscribe(subCommandVelocity);
+    nh.subscribe(subBladeOn);
+    nh.subscribe(subBladeOff);
+
+    // Initialize Timers
+    NBT_init(&publish_nbt, 1000);
+    NBT_init(&panel_nbt, 100);
+    NBT_init(&motors_nbt, BROADCAST_NBT_TIME_MS);
+    NBT_init(&broadcast_nbt, BROADCAST_NBT_TIME_MS);
+    NBT_init(&ros_nbt, 10);
 }

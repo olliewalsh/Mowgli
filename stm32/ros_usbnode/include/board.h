@@ -16,9 +16,9 @@ extern "C" {
 /********************************************************************************
 * YARDFORCE 500 MAINBOARD
 ********************************************************************************/
-#ifdef BOARD_YARDFORCE500    
+#ifdef BOARD_YARDFORCE500
     #warning "Compiling for YardForce 500 (GForce) board"
-    
+
 
     #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
     // #define PANEL_TYPE_YARDFORCE_900_ECO   1
@@ -68,7 +68,7 @@ extern "C" {
     #define PAC5210RESET_GPIO_PORT GPIOE
     #define PAC5210RESET_GPIO_CLK_ENABLE() __HAL_RCC_GPIOE_CLK_ENABLE()
 
-    /* Charge Control Pins - HighSide/LowSide MosFET */    
+    /* Charge Control Pins - HighSide/LowSide MosFET */
     #define CHARGE_LOWSIDE_PIN GPIO_PIN_8
     #define CHARGE_HIGHSIDE_PIN GPIO_PIN_9
     #define CHARGE_GPIO_PORT GPIOE
@@ -99,8 +99,8 @@ extern "C" {
     #define PLAY_BUTTON_GPIO_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE()
 
     /* either J6 or J18 can be the master USART port */
-#ifdef MASTER_J6    
-    /* USART1 (J6 Pin 1 (TX) Pin 2 (RX)) */    
+#ifdef MASTER_J6
+    /* USART1 (J6 Pin 1 (TX) Pin 2 (RX)) */
     #define MASTER_USART_INSTANCE USART1
     #define MASTER_USART_RX_PIN GPIO_PIN_10
     #define MASTER_USART_RX_PORT GPIOA
@@ -125,7 +125,7 @@ extern "C" {
     #ifdef DRIVEMOTORS_USART_ENABLED
         /* drive motors PAC 5210 (USART2) */
         #define DRIVEMOTORS_USART_INSTANCE USART2
-        
+
         #define DRIVEMOTORS_USART_RX_PIN GPIO_PIN_6
         #define DRIVEMOTORS_USART_RX_PORT GPIOD
 
@@ -137,12 +137,12 @@ extern "C" {
 
         #define DRIVEMOTORS_USART_IRQ USART2_IRQn
         #define DRIVEMOTORS_MSG_LEN 12
-    #endif 
+    #endif
 
     #ifdef BLADEMOTOR_USART_ENABLED
         /* blade motor PAC 5223 (USART3) */
         #define BLADEMOTOR_USART_INSTANCE USART3
-        
+
         #define BLADEMOTOR_USART_RX_PIN GPIO_PIN_11
         #define BLADEMOTOR_USART_RX_PORT GPIOB
 
@@ -151,9 +151,9 @@ extern "C" {
 
         #define BLADEMOTOR_USART_GPIO_CLK_ENABLE() __HAL_RCC_GPIOB_CLK_ENABLE()
         #define BLADEMOTOR_USART_USART_CLK_ENABLE() __HAL_RCC_USART3_CLK_ENABLE()
-    #endif 
+    #endif
 
-    #ifdef PANEL_USART_ENABLED    
+    #ifdef PANEL_USART_ENABLED
         #define PANEL_USART_INSTANCE USART1
 
         #define PANEL_USART_RX_PIN GPIO_PIN_10
@@ -185,7 +185,7 @@ extern "C" {
 ********************************************************************************/
 #ifdef BOARD_BLUEPILL
 
-    #warning "Compiling for BLUEPILL dev board"    
+    #warning "Compiling for BLUEPILL dev board"
     #define LED_PIN GPIO_PIN_13
     #define LED_GPIO_PORT GPIOC
     #define LED_GPIO_CLK_ENABLE() __HAL_RCC_GPIOC_CLK_ENABLE()
@@ -204,8 +204,8 @@ extern "C" {
     #define PAC5210RESET_PIN GPIO_PIN_12
     #define PAC5210RESET_GPIO_PORT GPIOB
     #define PAC5210RESET_GPIO_CLK_ENABLE() __HAL_RCC_GPIOB_CLK_ENABLE()
-    
-    /* Charge Control Pins - HighSide/LowSide MosFET */    
+
+    /* Charge Control Pins - HighSide/LowSide MosFET */
     #define CHARGE_LOWSIDE_PIN GPIO_PIN_7
     #define CHARGE_HIGHSIDE_PIN GPIO_PIN_8
     #define CHARGE_GPIO_PORT GPIOA
@@ -233,12 +233,12 @@ extern "C" {
 
         #define DRIVEMOTORS_USART_GPIO_CLK_ENABLE() __HAL_RCC_GPIOA_CLK_ENABLE()
         #define DRIVEMOTORS_USART_USART_CLK_ENABLE() __HAL_RCC_USART2_CLK_ENABLE()
-    #endif 
+    #endif
 
     #ifdef BLADEMOTOR_USART_ENABLED
         /* blade motor PAC 5223 (USART3) */
         #define BLADEMOTOR_USART_INSTANCE USART3
-        
+
         #define BLADEMOTOR_USART_RX_PIN GPIO_PIN_11
         #define BLADEMOTOR_USART_RX_PORT GPIOB
 
@@ -247,7 +247,7 @@ extern "C" {
 
         #define BLADEMOTOR_USART_GPIO_CLK_ENABLE() __HAL_RCC_GPIOB_CLK_ENABLE()
         #define BLADEMOTOR_USART_USART_CLK_ENABLE() __HAL_RCC_USART3_CLK_ENABLE()
-    #endif 
+    #endif
 #endif // BOARD_BLUEPILL
 
 #ifdef __cplusplus

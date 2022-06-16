@@ -55,7 +55,7 @@ void TIMER__Wait_us(uint32_t nCount)
 /* init soft i2c pins */
 void SW_I2C_Init(void)
 {
-    
+
     /* PB3, PB4 are used by the JTAG - we need to disable it, as we use SWD anyhow we dont need it */
     RCC->APB2ENR |= RCC_APB2ENR_AFIOEN; // Enable A.F. clock
     AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_JTAGDISABLE; // JTAG is disabled, SWD is enabled
@@ -64,7 +64,7 @@ void SW_I2C_Init(void)
     SOFT_I2C_GPIO_CLK_ENABLE();
 
     GPIO_InitTypeDef GPIO_InitStruct;
-    
+
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -74,15 +74,15 @@ void SW_I2C_Init(void)
     HAL_GPIO_Init(SW_I2C1_SCL_GPIO, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin   = SW_I2C1_SDA_PIN;
-    HAL_GPIO_Init(SW_I2C1_SDA_GPIO, &GPIO_InitStruct);    
+    HAL_GPIO_Init(SW_I2C1_SDA_GPIO, &GPIO_InitStruct);
 
 }
 
 // SDA High
 void sda_high(void)
-{ 
+{
     //debug_printf("sda_1\r\n");
-    // GPIO_SetBits(SW_I2C1_SDA_GPIO, SW_I2C1_SDA_PIN);    
+    // GPIO_SetBits(SW_I2C1_SDA_GPIO, SW_I2C1_SDA_PIN);
     HAL_GPIO_WritePin(SW_I2C1_SDA_GPIO, SW_I2C1_SDA_PIN, GPIO_PIN_SET);
     //  HAL_GPIO_WritePin(GPIOB,  GPIO_PIN_3 , 1);
 }
@@ -91,22 +91,22 @@ void sda_high(void)
 void sda_low(void)
 {
     //debug_printf("sda_0\r\n");
-    // GPIO_ResetBits(SW_I2C1_SDA_GPIO, SW_I2C1_SDA_PIN);  
+    // GPIO_ResetBits(SW_I2C1_SDA_GPIO, SW_I2C1_SDA_PIN);
     HAL_GPIO_WritePin(SW_I2C1_SDA_GPIO, SW_I2C1_SDA_PIN, GPIO_PIN_RESET);
     //HAL_GPIO_WritePin(GPIOB,  GPIO_PIN_3 , 0);
 }
 
 // SCL High
 void scl_high(void)
-{   
-    //debug_printf("scl_1\r\n"); 
-    // GPIO_SetBits(SW_I2C1_SCL_GPIO, SW_I2C1_SCL_PIN);  
+{
+    //debug_printf("scl_1\r\n");
+    // GPIO_SetBits(SW_I2C1_SCL_GPIO, SW_I2C1_SCL_PIN);
     HAL_GPIO_WritePin(SW_I2C1_SCL_GPIO, SW_I2C1_SCL_PIN, GPIO_PIN_SET);
 }
 
 // SCL low
 void scl_low(void)
-{    
+{
     //debug_printf("scl_0\r\n");
     // GPIO_ResetBits(SW_I2C1_SCL_GPIO, SW_I2C1_SCL_PIN);
     HAL_GPIO_WritePin(SW_I2C1_SCL_GPIO, SW_I2C1_SCL_PIN, GPIO_PIN_RESET);
@@ -131,9 +131,9 @@ void sda_in_mode(void)
 
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
     GPIO_InitStruct.Mode  = GPIO_MODE_INPUT;	//IPD->IPU
-	GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Pin   = SW_I2C1_SDA_PIN;
-    HAL_GPIO_Init(SW_I2C1_SDA_GPIO, &GPIO_InitStruct);  
+    HAL_GPIO_Init(SW_I2C1_SDA_GPIO, &GPIO_InitStruct);
 }
 
 void sda_out_mode(void)
@@ -141,14 +141,14 @@ void sda_out_mode(void)
     //debug_printf("sda_out_mode()\r\n");
 
     GPIO_InitTypeDef GPIO_InitStruct;
-    
+
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
 
 
     GPIO_InitStruct.Pin   = SW_I2C1_SDA_PIN;
-    HAL_GPIO_Init(SW_I2C1_SDA_GPIO, &GPIO_InitStruct);  
+    HAL_GPIO_Init(SW_I2C1_SDA_GPIO, &GPIO_InitStruct);
 }
 
 void scl_in_mode(void)
@@ -161,7 +161,7 @@ void scl_in_mode(void)
 
     GPIO_InitStruct.Pin   = SW_I2C1_SCL_PIN;
     HAL_GPIO_Init(SW_I2C1_SCL_GPIO, &GPIO_InitStruct);
-  
+
 }
 
 void scl_out_mode(void)
@@ -169,7 +169,7 @@ void scl_out_mode(void)
     GPIO_InitTypeDef GPIO_InitStruct;
 
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;		// error point GPIO_Mode_Out_PP	
+    GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;		// error point GPIO_Mode_Out_PP
 
     GPIO_InitStruct.Pin   = SW_I2C1_SCL_PIN;
     HAL_GPIO_Init(SW_I2C1_SCL_GPIO, &GPIO_InitStruct);
@@ -318,13 +318,13 @@ void i2c_send_ack(void)
 
 /* external functions */
 uint8_t SW_I2C_ReadVal_SDA(void)
-{    
-    return HAL_GPIO_ReadPin(SW_I2C1_SDA_GPIO, SW_I2C1_SDA_PIN);       
+{
+    return HAL_GPIO_ReadPin(SW_I2C1_SDA_GPIO, SW_I2C1_SDA_PIN);
 }
 
 uint8_t SW_I2C_ReadVal_SCL(void)
-{ 
-    return HAL_GPIO_ReadPin(SW_I2C1_SCL_GPIO, SW_I2C1_SCL_PIN);    
+{
+    return HAL_GPIO_ReadPin(SW_I2C1_SCL_GPIO, SW_I2C1_SCL_PIN);
 }
 
 void SW_I2C_Write_Data(uint8_t data)
@@ -626,7 +626,7 @@ uint8_t SW_I2C_ReadnControl_8Bit(uint8_t IICID, uint8_t regaddr, uint8_t rcnt, u
     if (!i2c_check_ack()) { returnack = FALSE; }
 
     TIMER__Wait_us(SW_I2C_WAIT_TIME);
-	
+
     i2c_register_address(regaddr);
     if (!i2c_check_ack()) { returnack = FALSE; }
 
@@ -638,12 +638,12 @@ uint8_t SW_I2C_ReadnControl_8Bit(uint8_t IICID, uint8_t regaddr, uint8_t rcnt, u
     if (!i2c_check_ack()) { returnack = FALSE; }
 
     for ( index = 0 ; index < rcnt ; index++){
-    	TIMER__Wait_us(SW_I2C_WAIT_TIME);
-    	pdata[index] = SW_I2C_Read_Data();
+        TIMER__Wait_us(SW_I2C_WAIT_TIME);
+        pdata[index] = SW_I2C_Read_Data();
     }
 
     pdata[rcnt-1] = SW_I2C_Read_Data();
-	
+
     i2c_check_not_ack();
 
     i2c_stop_condition();
@@ -664,7 +664,7 @@ uint8_t SW_I2C_Multi_ReadnControl_8Bit(uint8_t IICID, uint8_t regaddr, uint8_t r
     if (!i2c_check_ack()) { returnack = FALSE; }
 
     TIMER__Wait_us(SW_I2C_WAIT_TIME);
-	
+
     i2c_register_address(regaddr);
     if (!i2c_check_ack()) { returnack = FALSE; }
 
@@ -676,14 +676,14 @@ uint8_t SW_I2C_Multi_ReadnControl_8Bit(uint8_t IICID, uint8_t regaddr, uint8_t r
     if (!i2c_check_ack()) { returnack = FALSE; }
 
     for ( index = 0 ; index < (rcnt-1) ; index++){
-    	TIMER__Wait_us(SW_I2C_WAIT_TIME);
-    	pdata[index] = SW_I2C_Read_Data();
-	    i2c_send_ack();
-	//if (!i2c_check_ack()) { returnack = FALSE; }
+        TIMER__Wait_us(SW_I2C_WAIT_TIME);
+        pdata[index] = SW_I2C_Read_Data();
+        i2c_send_ack();
+    //if (!i2c_check_ack()) { returnack = FALSE; }
     }
 
     pdata[rcnt-1] = SW_I2C_Read_Data();
-	
+
     i2c_check_not_ack();
     i2c_stop_condition();
 
@@ -701,21 +701,21 @@ uint8_t SW_I2C_Check_SlaveAddr(uint8_t IICID)
     {
         returnack = FALSE;
     }
-	
+
     return returnack;
 }
 
 uint8_t SW_I2C_UTIL_WRITE(uint8_t IICID, uint8_t regaddr, uint8_t data)
 {
-	return SW_I2C_WriteControl_8Bit(IICID<<1, regaddr, data);
+    return SW_I2C_WriteControl_8Bit(IICID<<1, regaddr, data);
 }
 
 uint8_t SW_I2C_UTIL_Read(uint8_t IICID, uint8_t regaddr)
 {
-	return SW_I2C_ReadControl_8Bit(IICID<<1, regaddr);
+    return SW_I2C_ReadControl_8Bit(IICID<<1, regaddr);
 }
 
 uint8_t SW_I2C_UTIL_Read_Multi(uint8_t IICID, uint8_t regaddr, uint8_t rcnt, uint8_t (*pdata))
 {
-	return SW_I2C_Multi_ReadnControl_8Bit(IICID<<1, regaddr, rcnt, pdata);
+    return SW_I2C_Multi_ReadnControl_8Bit(IICID<<1, regaddr, rcnt, pdata);
 }

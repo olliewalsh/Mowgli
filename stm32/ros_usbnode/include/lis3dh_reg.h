@@ -166,7 +166,7 @@ typedef struct
   */
 
 /** I2C Device Address 8 bit format if SA0=0 -> 31 if SA0=1 -> 33 **/
-#define LIS3DH_I2C_ADD_L   0x30U  
+#define LIS3DH_I2C_ADD_L   0x30U
 //#define LIS3DH_I2C_ADD_H   0x31U
 
 /** Device Identification (Who am I) **/

@@ -21,7 +21,7 @@
 /* functions */
 void SW_I2C_Init(void);
 
-void i2c_port_initial(void);		
+void i2c_port_initial(void);
 
 uint8_t SW_I2C_ReadVal_SDA(void);
 

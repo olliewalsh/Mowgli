@@ -12,13 +12,13 @@ static nbt_t lednbt;
 
 extern "C" void init_ledStatus()
 {
-	NBT_init(&lednbt, 500);
+    NBT_init(&lednbt, 500);
 }
 
 extern "C" void ledStatus_handler()
 {
-	if (NBT_handler(&lednbt))
-	{
-	//   HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-	}
+    if (NBT_handler(&lednbt))
+    {
+    //   HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    }
 }

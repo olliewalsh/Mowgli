@@ -31,36 +31,36 @@
 
 __inline enum ringbuffer_state  ringbuffer_status(struct  ringbuffer *rb)
 {
-	if (rb->read_index == rb->write_index) {
-		if (rb->read_mirror == rb->write_mirror)
-			return RT_RINGBUFFER_EMPTY;
-		else
-			return RT_RINGBUFFER_FULL;
-	}
-	return RT_RINGBUFFER_HALFFULL;
+    if (rb->read_index == rb->write_index) {
+        if (rb->read_mirror == rb->write_mirror)
+            return RT_RINGBUFFER_EMPTY;
+        else
+            return RT_RINGBUFFER_FULL;
+    }
+    return RT_RINGBUFFER_HALFFULL;
 }
 
 /** return the size of data in rb */
 uint16_t  ringbuffer_data_len(struct  ringbuffer *rb)
 {
-	switch ( ringbuffer_status(rb)) {
-	case RT_RINGBUFFER_EMPTY:
-		return 0;
-	case RT_RINGBUFFER_FULL:
-		return rb->buffer_size;
-	case RT_RINGBUFFER_HALFFULL:
-	default:
-		if (rb->write_index > rb->read_index)
-			return rb->write_index - rb->read_index;
-		else
-			return rb->buffer_size - (rb->read_index - rb->write_index);
-	};
+    switch ( ringbuffer_status(rb)) {
+    case RT_RINGBUFFER_EMPTY:
+        return 0;
+    case RT_RINGBUFFER_FULL:
+        return rb->buffer_size;
+    case RT_RINGBUFFER_HALFFULL:
+    default:
+        if (rb->write_index > rb->read_index)
+            return rb->write_index - rb->read_index;
+        else
+            return rb->buffer_size - (rb->read_index - rb->write_index);
+    };
 }
 
 /** return the free space size of rb */
 uint16_t  ringbuffer_free_len(struct  ringbuffer *rb)
 {
-	return rb->buffer_size - ringbuffer_data_len(rb);
+    return rb->buffer_size - ringbuffer_data_len(rb);
 }
 
 /**
@@ -116,42 +116,42 @@ uint32_t  ringbuffer_put(struct  ringbuffer *rb,
  */
 uint32_t ringbuffer_put_force(struct ringbuffer *rb, const uint8_t *ptr, uint16_t length)
 {
-	enum ringbuffer_state old_state;
+    enum ringbuffer_state old_state;
 
-	ASSERT(rb != NULL);
+    ASSERT(rb != NULL);
 
-	old_state = ringbuffer_status(rb);
+    old_state = ringbuffer_status(rb);
 
-	if (length > rb->buffer_size)
-		length = rb->buffer_size;
+    if (length > rb->buffer_size)
+        length = rb->buffer_size;
 
-	if (rb->buffer_size - rb->write_index > length) {
-		/* read_index - write_index = empty space */
-		memcpy(&rb->buffer_ptr[rb->write_index], ptr, length);
-		/* this should not cause overflow because there is enough space for
-		 * length of data in current mirror */
-		rb->write_index += length;
+    if (rb->buffer_size - rb->write_index > length) {
+        /* read_index - write_index = empty space */
+        memcpy(&rb->buffer_ptr[rb->write_index], ptr, length);
+        /* this should not cause overflow because there is enough space for
+         * length of data in current mirror */
+        rb->write_index += length;
 
-		if (old_state == RT_RINGBUFFER_FULL)
-			rb->read_index = rb->write_index;
+        if (old_state == RT_RINGBUFFER_FULL)
+            rb->read_index = rb->write_index;
 
-		return length;
-	}
+        return length;
+    }
 
-	memcpy(&rb->buffer_ptr[rb->write_index], &ptr[0], rb->buffer_size - rb->write_index);
-	memcpy(&rb->buffer_ptr[0], &ptr[rb->buffer_size - rb->write_index],
-			length - (rb->buffer_size - rb->write_index));
+    memcpy(&rb->buffer_ptr[rb->write_index], &ptr[0], rb->buffer_size - rb->write_index);
+    memcpy(&rb->buffer_ptr[0], &ptr[rb->buffer_size - rb->write_index],
+            length - (rb->buffer_size - rb->write_index));
 
-	/* we are going into the other side of the mirror */
-	rb->write_mirror = ~rb->write_mirror;
-	rb->write_index = length - (rb->buffer_size - rb->write_index);
+    /* we are going into the other side of the mirror */
+    rb->write_mirror = ~rb->write_mirror;
+    rb->write_index = length - (rb->buffer_size - rb->write_index);
 
-	if (old_state == RT_RINGBUFFER_FULL) {
-		rb->read_mirror = ~rb->read_mirror;
-		rb->read_index = rb->write_index;
-	}
+    if (old_state == RT_RINGBUFFER_FULL) {
+        rb->read_mirror = ~rb->read_mirror;
+        rb->read_index = rb->write_index;
+    }
 
-	return length;
+    return length;
 }
 
 /**
@@ -208,20 +208,20 @@ uint32_t  ringbuffer_putchar(struct  ringbuffer *rb, const uint8_t ch)
     ASSERT(rb != NULL);
 
     /* whether has enough space */
-	if (! ringbuffer_empty_space(rb))
-		return 0;
+    if (! ringbuffer_empty_space(rb))
+        return 0;
 
-	rb->buffer_ptr[rb->write_index] = ch;
+    rb->buffer_ptr[rb->write_index] = ch;
 
-	/* flip mirror */
-	if (rb->write_index == rb->buffer_size - 1) {
-		rb->write_mirror = ~rb->write_mirror;
-		rb->write_index = 0;
-	} else {
-		rb->write_index++;
-	}
+    /* flip mirror */
+    if (rb->write_index == rb->buffer_size - 1) {
+        rb->write_mirror = ~rb->write_mirror;
+        rb->write_index = 0;
+    } else {
+        rb->write_index++;
+    }
 
-	return 1;
+    return 1;
 }
 
 /**

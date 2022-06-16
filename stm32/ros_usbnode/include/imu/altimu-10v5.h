@@ -5,10 +5,10 @@
 /* Calibration, Conversion factors */
 
 #define DS33_G_FACTOR           1.0/(65536/2/2)     // LSM6DS33 datasheet (page 15)  0.061 mg/LSB
-#define DS33_DPS_FACTOR         1.0/(65536/2/245)   // LSM6DS33 °/sec/LSB 
-#define LIS3MDL_GAUSS_FACTOR    1.0/6842            // LIS3MDL datasheet (page8)  Gauss/LSB 
+#define DS33_DPS_FACTOR         1.0/(65536/2/245)   // LSM6DS33 °/sec/LSB
+#define LIS3MDL_GAUSS_FACTOR    1.0/6842            // LIS3MDL datasheet (page8)  Gauss/LSB
 #define RAD_PER_G               0.01745             // convert °/sec to rad/sec
-#define MS2_PER_G               9.80665             // convert G to m/s^2 
+#define MS2_PER_G               9.80665             // convert G to m/s^2
 #define T_PER_GAUSS             1/10000             // conver Gauss to T
 
 /* Gyro / Accelerometer */
@@ -109,23 +109,23 @@
 
 #define LPS25H_REF_P_XL            0x08
 #define LPS25H_REF_P_L             0x09
-#define LPS25H_REF_P_H             0x0A                              
-#define LPS25H_WHO_AM_I            0x0F                              
-#define LPS25H_RES_CONF            0x10                              
+#define LPS25H_REF_P_H             0x0A
+#define LPS25H_WHO_AM_I            0x0F
+#define LPS25H_RES_CONF            0x10
 #define LPS25H_CTRL_REG1           0x20
 #define LPS25H_CTRL_REG2           0x21
 #define LPS25H_CTRL_REG3           0x22
 #define LPS25H_CTRL_REG4           0x23
-#define LPS25H_STATUS_REG          0x27                            
+#define LPS25H_STATUS_REG          0x27
 #define LPS25H_PRESS_OUT_XL        0x28
 #define LPS25H_PRESS_OUT_L         0x29
 #define LPS25H_PRESS_OUT_H         0x2A
 #define LPS25H_TEMP_OUT_L          0x2B
-#define LPS25H_TEMP_OUT_H          0x2C      
-#define LPS25H_FIFO_CTRL           0x2E 
-#define LPS25H_FIFO_STATUS         0x2F 
-#define LPS25H_RPDS_L              0x39 
-#define LPS25H_RPDS_H              0x3A      
+#define LPS25H_TEMP_OUT_H          0x2C
+#define LPS25H_FIFO_CTRL           0x2E
+#define LPS25H_FIFO_STATUS         0x2F
+#define LPS25H_RPDS_L              0x39
+#define LPS25H_RPDS_H              0x3A
 #define LPS25H_INTERRUPT_CFG       0x24
 #define LPS25H_INT_SOURCE          0x25
 #define LPS25H_THS_P_L             0x30

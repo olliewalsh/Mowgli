@@ -9,13 +9,13 @@
 
 /* per panel type initializers */
 #ifdef PANEL_TYPE_YARDFORCE_900_ECO
-    const uint8_t KEY_INIT_MSG[] = {0x03, 0x90, 0x28};     
+    const uint8_t KEY_INIT_MSG[] = {0x03, 0x90, 0x28};
     const uint8_t KEY_ACTIVATE[] = {0x0, 0x0, 0x1};
 #endif
 
 #ifdef PANEL_TYPE_YARDFORCE_500_CLASSIC
-    const uint8_t KEY_INIT_MSG[] = {0x06, 0x50, 0xe0};    
-    const uint8_t KEY_ACTIVATE[] = {0x0, 0x0, 0x1};    
+    const uint8_t KEY_INIT_MSG[] = {0x06, 0x50, 0xe0};
+    const uint8_t KEY_ACTIVATE[] = {0x0, 0x0, 0x1};
 #endif
 
 
@@ -50,7 +50,7 @@ void PANEL_Send_Message(uint8_t *data, uint8_t dataLength, uint16_t command)
     }
     SendBuffer[dataLength + 5] = crc;
 
-    
+
   //   msgPrint(SendBuffer, dataLength+6);
 #ifdef PANEL_USART_ENABLED
     HAL_UART_Transmit(&PANEL_USART_Handler, SendBuffer, dataLength + 6, 250);
@@ -101,7 +101,7 @@ void PANEL_Handle_Received_Data(uint8_t rcvd_data)
  * Initialize HW, USART and send init sequence to panel
  */
 void PANEL_Init(void)
-{    
+{
 #ifdef PANEL_USART_ENABLED
     GPIO_InitTypeDef GPIO_InitStruct = {0};
 
@@ -135,7 +135,7 @@ void PANEL_Init(void)
     HAL_UART_Init(&PANEL_USART_Handler); // HAL_UART_Init() Will enable UART1
 
     HAL_NVIC_SetPriority(PANEL_USART_IRQ, 0, 0);
-	HAL_NVIC_EnableIRQ(PANEL_USART_IRQ);     
+    HAL_NVIC_EnableIRQ(PANEL_USART_IRQ);
 
 
     memset(Led_States, 0x0, LED_STATE_SIZE);       // all LEDs OFF
@@ -143,7 +143,7 @@ void PANEL_Init(void)
     PANEL_Send_Message(NULL, 0, 0xffff);
     HAL_Delay(100);
     PANEL_Send_Message(NULL, 0, 0xfffe);
-    HAL_Delay(100);    
+    HAL_Delay(100);
     PANEL_Send_Message((uint8_t*)KEY_INIT_MSG, sizeof(KEY_INIT_MSG), 0xfffd);
     HAL_Delay(100);
     PANEL_Send_Message(NULL, 0, 0xfffb);
@@ -156,7 +156,7 @@ void PANEL_Init(void)
         {
             memset(Led_States, 0x0, LED_STATE_SIZE);
             PANEL_Set_LED(i, PANEL_LED_ON);
-            PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);     
+            PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);
             PANEL_Send_Message((uint8_t*)KEY_ACTIVATE, sizeof(KEY_ACTIVATE), 0x5084);
             HAL_Delay(50);
         }
@@ -164,15 +164,15 @@ void PANEL_Init(void)
         {
             memset(Led_States, 0x0, LED_STATE_SIZE);
             PANEL_Set_LED(i, PANEL_LED_ON);
-            PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);     
+            PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);
             PANEL_Send_Message((uint8_t*)KEY_ACTIVATE, sizeof(KEY_ACTIVATE), 0x5084);
             HAL_Delay(50);
         }
     }
     // all off
     HAL_Delay(50);
-    memset(Led_States, 0x0, LED_STATE_SIZE);    
-    PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);     
+    memset(Led_States, 0x0, LED_STATE_SIZE);
+    PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);
     PANEL_Send_Message((uint8_t*)KEY_ACTIVATE, sizeof(KEY_ACTIVATE), 0x5084);
 
 #endif
@@ -205,19 +205,19 @@ void PANEL_Set_LED(uint8_t led, PANEL_LED_STATE state)
 
 /*
  * feed panel messages to uart
- * needs to be called regularly or led states will timeout 
+ * needs to be called regularly or led states will timeout
  */
 void PANEL_Tick(void)
-{    
-   
+{
+
     // debug_printf("panel key: %d\r\n", PANEL_Get_Key_Pressed());
 
     // uncomment to flash charging led as a test
     // PANEL_Set_LED(PANEL_LED_CHARGING, PANEL_LED_FLASH_FAST);
-    
+
 #ifdef PANEL_USART_ENABLED     //PANEL_Send_Message(Led_States, sizeof(Led_States), 0x508b);
-     PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);     
-     PANEL_Send_Message((uint8_t*)KEY_ACTIVATE, sizeof(KEY_ACTIVATE), 0x5084);     
+     PANEL_Send_Message(Led_States, sizeof(Led_States), LED_CMD);
+     PANEL_Send_Message((uint8_t*)KEY_ACTIVATE, sizeof(KEY_ACTIVATE), 0x5084);
 #endif
 }
 

@@ -17,8 +17,8 @@ extern "C" {
 
 
 typedef struct{
-	uint32_t timeout;
-	uint32_t previousMillis;
+    uint32_t timeout;
+    uint32_t previousMillis;
 }nbt_t;
 
 void NBT_init(nbt_t * nbt, uint32_t interval);

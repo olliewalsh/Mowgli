@@ -200,11 +200,11 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 
- 
+
 /**
   * @brief This function handles USART1 global interrupt.
   */
-#ifdef MASTER_J6 
+#ifdef MASTER_J6
   void USART1_IRQHandler(void)
   {
     /* USER CODE BEGIN USART1_IRQn 0 */

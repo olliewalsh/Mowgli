@@ -19,8 +19,8 @@ typedef enum
 } PANEL_LED_STATE;
 
 
-/* 
- * different yardforce models have different keyboard/led panels 
+/*
+ * different yardforce models have different keyboard/led panels
  */
 
 #ifdef PANEL_TYPE_YARDFORCE_900_ECO         // YardForce SA900ECO
@@ -35,8 +35,8 @@ typedef enum
     #define PANEL_LED_S1 8
     #define PANEL_LED_S2 9
     #define PANEL_LED_LOCK 10
-    
-    #define LED_STATE_SIZE 12       // model has 12-1 different leds to control ?   
+
+    #define LED_STATE_SIZE 12       // model has 12-1 different leds to control ?
     #define LED_CMD 0x508b
 #endif
 
@@ -60,11 +60,11 @@ typedef enum
     #define PANEL_LED_SAT 16
     #define PANEL_LED_SUN 17
     #define PANEL_LED_UNKNOWN 18
-    
+
     #define LED_STATE_SIZE 19       // model has 19-2 different leds to control ?
     #define LED_CMD 0x508e
 #endif
-   
+
 
 UART_HandleTypeDef PANEL_USART_Handler;
 

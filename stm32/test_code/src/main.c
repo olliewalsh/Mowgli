@@ -1,11 +1,11 @@
 /*
- * Project Mowgli - STM32 Proxy Code 
+ * Project Mowgli - STM32 Proxy Code
  * (c) Cybernet / cn@warp.at
- * 
- *  Version 1.0 
- *  
+ *
+ *  Version 1.0
+ *
  *  compile with -DBOARD_YARDFORCE500 to enable the YF500 GForce pinout
- *  
+ *
  */
 
 #include "stm32f1xx_hal.h"
@@ -42,65 +42,65 @@ uint8_t rcvd_data;
 
 /*
  * Master UART receive ISR
- */ 
+ */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{    
+{
        if (huart->Instance == MASTER_USART_INSTANCE)
        {
-           if (master_rx_buf_idx == 0 && rcvd_data == 0x55)           /* PREAMBLE */  
-           {                                  
-               master_rx_buf_crc = rcvd_data;        
-               master_rx_buf[master_rx_buf_idx++] = rcvd_data;                                   
-           }           
-           else if (master_rx_buf_idx == 1 && rcvd_data == 0xAA)        /* PREAMBLE */    
-           {                   
+           if (master_rx_buf_idx == 0 && rcvd_data == 0x55)           /* PREAMBLE */
+           {
+               master_rx_buf_crc = rcvd_data;
+               master_rx_buf[master_rx_buf_idx++] = rcvd_data;
+           }
+           else if (master_rx_buf_idx == 1 && rcvd_data == 0xAA)        /* PREAMBLE */
+           {
                master_rx_buf_crc += rcvd_data;
-               master_rx_buf[master_rx_buf_idx++] = rcvd_data;               
+               master_rx_buf[master_rx_buf_idx++] = rcvd_data;
            }
            else if (master_rx_buf_idx == 2) /* LEN */
-           {    
+           {
                master_rx_LENGTH = rcvd_data;
-               master_rx_buf[master_rx_buf_idx++] = rcvd_data;               
-               master_rx_buf_crc += rcvd_data;                              
+               master_rx_buf[master_rx_buf_idx++] = rcvd_data;
+               master_rx_buf_crc += rcvd_data;
            }
            else if (master_rx_buf_idx >= 3 && master_rx_buf_idx <= 2+master_rx_LENGTH) /* DATA bytes */
            {
                master_rx_buf[master_rx_buf_idx] = rcvd_data;
                master_rx_buf_idx++;
-               master_rx_buf_crc += rcvd_data;               
+               master_rx_buf_crc += rcvd_data;
            }
            else if (master_rx_buf_idx >= 3+master_rx_LENGTH)    /* CRC byte */
            {
                master_rx_CRC = rcvd_data;
                master_rx_buf[master_rx_buf_idx] = rcvd_data;
-               master_rx_buf_idx++;               
+               master_rx_buf_idx++;
                if (master_rx_buf_crc == rcvd_data)
-               {                   
+               {
                    // message valid, reader must set back STATUS to RX_WAIT
                    master_rx_STATUS = RX_VALID;
                    //master_rx_buf_idx = 0;
                }
                else
-               {                   
+               {
                    // crc failed, reader must set back STATUS to RX_WAIT
-                   master_rx_STATUS = RX_CRC_ERROR;                   
+                   master_rx_STATUS = RX_CRC_ERROR;
                    master_rx_buf_idx = 0;
                }
            }
            else
            {
                master_rx_STATUS = RX_WAIT;
-               master_rx_buf_idx = 0;               
+               master_rx_buf_idx = 0;
            }
-           
+
            HAL_UART_Receive_IT(&MASTER_USART_Handler, &rcvd_data, 1);   // rearm interrupt
        }
 }
 
 
 int main(void)
-{    
-    uint8_t blademotor_init[] =  { 0x55, 0xaa, 0x12, 0x20, 0x80, 0x00, 0xac, 0x0d, 0x00, 0x02, 0x32, 0x50, 0x1e, 0x04, 0x00, 0x15, 0x21, 0x05, 0x0a, 0x19, 0x3c, 0xaa };    
+{
+    uint8_t blademotor_init[] =  { 0x55, 0xaa, 0x12, 0x20, 0x80, 0x00, 0xac, 0x0d, 0x00, 0x02, 0x32, 0x50, 0x1e, 0x04, 0x00, 0x15, 0x21, 0x05, 0x0a, 0x19, 0x3c, 0xaa };
     uint8_t drivemotors_init[] = { 0x55, 0xaa, 0x08, 0x10, 0x80, 0xa0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x37};
 
     uint8_t blademotor_on[] =  { 0x55, 0xaa, 0x03, 0x20, 0x80, 0x80, 0x22};
@@ -108,15 +108,15 @@ int main(void)
 
     uint8_t drivemotors_on[] =  { 0x55, 0xaa, 0x8, 0x10, 0x80, 0xa0, 0xff, 0xff, 0x0, 0x0, 0x0, 0x35};
     uint8_t drivemotors_off[] = { 0x55, 0xaa, 0x8, 0x10, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x97};
-    
+
     char *data= "Hello from USB\r\n";
 
     HAL_Init();
     SystemClock_Config();
 
     __HAL_RCC_AFIO_CLK_ENABLE();
-    
-    
+
+
     LED_Init();
     TF4_Init();
     PAC5223RESET_Init();
@@ -124,17 +124,17 @@ int main(void)
     MASTER_USART_Init();
     I2C_Init();
     ADC1_Init();
-    TIM1_Init();   
+    TIM1_Init();
 //    MX_USB_DEVICE_Init();
 
 /*
-    
+
     while (1)
     {
         CDC_Transmit_FS(data, strlen(data));
         HAL_Delay(100);
     }
-  */  
+  */
 
     #ifdef DRIVEMOTORS_USART_ENABLED
         DRIVEMOTORS_USART_Init();
@@ -144,7 +144,7 @@ int main(void)
     #endif
 
     // HAL_UART_Receive_IT(&MASTER_USART_Handler, &rcvd_data, 1);
-    debug_printf("\r\n============== Init Done ==============\r\n");    
+    debug_printf("\r\n============== Init Done ==============\r\n");
     HAL_GPIO_WritePin(LED_GPIO_PORT, LED_PIN, 1);
     HAL_GPIO_WritePin(TF4_GPIO_PORT, TF4_PIN, 1);
     HAL_GPIO_WritePin(PAC5223RESET_GPIO_PORT, PAC5223RESET_PIN, 1);     // take Blade PAC out of reset if HIGH
@@ -169,13 +169,13 @@ int main(void)
     uint16_t pwm_val=50;
     float_t charge_voltage, charge_current, battery_voltage;
 
-    
+
     uint8_t d=0;
     while (0)
     {
-       
-        charge_voltage =  ADC_ChargeVoltage();            
-        // set PWM to approach 29.4V charge voltage         
+
+        charge_voltage =  ADC_ChargeVoltage();
+        // set PWM to approach 29.4V charge voltage
         if ((charge_voltage < 29.4) && (pwm_val < 1350))
         {
             pwm_val++;
@@ -190,37 +190,37 @@ int main(void)
         if (d == 100)
         {
             battery_voltage = ADC_BatteryVoltage();
-            charge_current =  ADC_ChargeCurrent();  
+            charge_current =  ADC_ChargeCurrent();
 
             debug_printf("Charge PWM = %d | Chg Voltage: %2.2fV | Chg Current: %2.2fA | Bat Voltage %2.2fV\r\n",pwm_val, charge_voltage, charge_current, battery_voltage);
          //   HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_on, 7, HAL_MAX_DELAY);
          //   HAL_UART_Transmit(&DRIVEMOTORS_USART_Handler, drivemotors_on, 12, HAL_MAX_DELAY);
 
             CDC_Transmit_FS(data, strlen(data));
-            d=0;            
+            d=0;
         }
         d++;
     }
 
     // receive messages via master serial port and send to blade/drive motor PAC
     while (1)
-    {                
+    {
         HAL_Delay(10);
-            
+
         if (master_rx_STATUS == RX_VALID)   // valid frame received by MASTER USART
         {
-            
+
                 int i;
-                //debug_printf("master_rx_buf_crc = 0x%02x\r\n", master_rx_buf_crc);            
-                //debug_printf("master_rx_CRC = 0x%02x\r\n", master_rx_CRC);            
-                //debug_printf("master_rx_LENGTH = %d\r\n", master_rx_LENGTH);            
+                //debug_printf("master_rx_buf_crc = 0x%02x\r\n", master_rx_buf_crc);
+                //debug_printf("master_rx_CRC = 0x%02x\r\n", master_rx_CRC);
+                //debug_printf("master_rx_LENGTH = %d\r\n", master_rx_LENGTH);
                 debug_printf("tx: ");
                 for (i=0;i<master_rx_buf_idx;i++)
                 {
                     debug_printf(" %02x", master_rx_buf[i]);
-                }            
+                }
                 debug_printf("\r\n");
-            
+
 
             // until we have some kind of protocol we discrimate what goes where simply by message length
             // drive motors always get a 12 byte message relayed
@@ -233,9 +233,9 @@ int main(void)
             master_rx_STATUS = RX_WAIT; // ready for next message
             master_rx_buf_idx = 0;
 
-            HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED             
+            HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED
         }
-        HAL_UART_Receive_IT(&MASTER_USART_Handler, &rcvd_data, 1);   // rearm interrupt                 
+        HAL_UART_Receive_IT(&MASTER_USART_Handler, &rcvd_data, 1);   // rearm interrupt
     }
 }
 
@@ -276,7 +276,7 @@ void MASTER_USART_Init()
 
     // enable IRQ
     HAL_NVIC_SetPriority(MASTER_USART_IRQ, 0, 1);
-	HAL_NVIC_EnableIRQ(MASTER_USART_IRQ);     
+    HAL_NVIC_EnableIRQ(MASTER_USART_IRQ);
 }
 
 
@@ -292,7 +292,7 @@ void DRIVEMOTORS_USART_Init()
     // enable port and usart clocks
     DRIVEMOTORS_USART_GPIO_CLK_ENABLE();
     DRIVEMOTORS_USART_USART_CLK_ENABLE();
-    
+
     // RX
     GPIO_InitStruct.Pin = DRIVEMOTORS_USART_RX_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -317,7 +317,7 @@ void DRIVEMOTORS_USART_Init()
     DRIVEMOTORS_USART_Handler.Init.Parity = UART_PARITY_NONE;       // No parity bit
     DRIVEMOTORS_USART_Handler.Init.HwFlowCtl = UART_HWCONTROL_NONE; // No hardware flow control
     DRIVEMOTORS_USART_Handler.Init.Mode = USART_MODE_TX_RX;         // Transceiver mode
-    
+
 
     HAL_UART_Init(&DRIVEMOTORS_USART_Handler); // HAL_UART_Init() Will enable  UART1
 }
@@ -335,7 +335,7 @@ void BLADEMOTOR_USART_Init()
     // enable port and usart clocks
     BLADEMOTOR_USART_GPIO_CLK_ENABLE();
     BLADEMOTOR_USART_USART_CLK_ENABLE();
-    
+
     // RX
     GPIO_InitStruct.Pin = BLADEMOTOR_USART_RX_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -360,7 +360,7 @@ void BLADEMOTOR_USART_Init()
     BLADEMOTOR_USART_Handler.Init.Parity = UART_PARITY_NONE;       // No parity bit
     BLADEMOTOR_USART_Handler.Init.HwFlowCtl = UART_HWCONTROL_NONE; // No hardware flow control
     BLADEMOTOR_USART_Handler.Init.Mode = USART_MODE_TX_RX;         // Transceiver mode
-    
+
 
     HAL_UART_Init(&BLADEMOTOR_USART_Handler); // HAL_UART_Init() Will enable  UART1
 }
@@ -427,7 +427,7 @@ void PAC5210RESET_Init()
 
 
     // PD7 (->PAC5210 PC4), PD8 (->PAC5210 PC3)
-     __HAL_RCC_GPIOD_CLK_ENABLE();    
+     __HAL_RCC_GPIOD_CLK_ENABLE();
     GPIO_InitStruct.Pin = GPIO_PIN_7| GPIO_PIN_8;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -507,7 +507,7 @@ void SystemClock_Config(void)
   * @brief I2C Initialization Function
   * @param None
   * @retval None
-  */ 
+  */
 void I2C_Init(void)
 {
    GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -666,7 +666,7 @@ void ADC1_Init(void)
 
   /* USER CODE END TIM1_Init 2 */
 
-  GPIO_InitTypeDef GPIO_InitStruct = {0};  
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   CHARGE_GPIO_CLK_ENABLE();
   /** TIM1 GPIO Configuration
   PA7 or PE8     -----> TIM1_CH1N
@@ -679,9 +679,9 @@ void ADC1_Init(void)
   #ifdef BOARD_BLUEPILL
     __HAL_AFIO_REMAP_TIM1_PARTIAL();        // to use PA7/8 it is a partial remap
   #endif
-  #ifdef BOARD_YARDFORCE500 
+  #ifdef BOARD_YARDFORCE500
      __HAL_AFIO_REMAP_TIM1_ENABLE();        // to use PE8/9 it is a full remap
-  #endif  
+  #endif
 }
 
 /*
@@ -805,7 +805,7 @@ void ADC_Test()
         adc_volt= (float)(adc_val/4095.0f)*3.3f*16;     //PA2 has a 1:16 divider
         debug_printf(" Charge Voltage: %2.2fV (adc:%d)\r\n", adc_volt, adc_val);
         debug_printf("\r\n");
-  
+
 }
 
 
@@ -852,7 +852,7 @@ void I2C_Test(void)
     dev_ctx.handle = &I2C_Handle;
     HAL_Delay(50);   // wait for bootup
     /* Check device ID */
-    lis3dh_device_id_get(&dev_ctx, &reg.byte);    
+    lis3dh_device_id_get(&dev_ctx, &reg.byte);
     if (reg.byte != LIS3DH_ID) {
         while (1) {
             /* manage here device not found */
@@ -875,7 +875,7 @@ void I2C_Test(void)
     while (1) {
         lis3dh_reg_t reg;
         /* Read output only if new value available */
-        lis3dh_xl_data_ready_get(&dev_ctx, &reg.byte);        
+        lis3dh_xl_data_ready_get(&dev_ctx, &reg.byte);
         if (reg.byte) {
             /* Read accelerometer data */
             memset(data_raw_acceleration, 0x00, 3 * sizeof(int16_t));
@@ -887,13 +887,13 @@ void I2C_Test(void)
             acceleration_mg[2] =
                 lis3dh_from_fs2_hr_to_mg(data_raw_acceleration[2]);
 
-            debug_printf("Acceleration [mg]: X=%4.2f\tY=%4.2f\tZ=%4.2f\r\n", acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);        
+            debug_printf("Acceleration [mg]: X=%4.2f\tY=%4.2f\tZ=%4.2f\r\n", acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);
         }
 
         lis3dh_temp_data_ready_get(&dev_ctx, &reg.byte);
 
-        if (reg.byte) {            
-            // Read temperature data 
+        if (reg.byte) {
+            // Read temperature data
             memset(&data_raw_temperature, 0x00, sizeof(int16_t));
             lis3dh_temperature_raw_get(&dev_ctx, &data_raw_temperature);
             temperature_degC =
@@ -918,7 +918,7 @@ void vprint(const char *fmt, va_list argp)
 /*
  * Debug print
  */
-void debug_printf(const char *fmt, ...) 
+void debug_printf(const char *fmt, ...)
 {
     va_list argp;
     va_start(argp, fmt);

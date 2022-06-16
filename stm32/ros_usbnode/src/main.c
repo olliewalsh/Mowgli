@@ -1,13 +1,13 @@
 /*
  * Project Mowgli - STM32 ROS SERIAL USB
  * (c) Cybernet / cn@warp.at
- * 
- *  Version 1.0 
- *  
+ *
+ *  Version 1.0
+ *
  *  compile with -DBOARD_YARDFORCE500 to enable the YF500 GForce pinout
- * 
+ *
  *  ROS integration howto taken from here: https://github.com/Itamare4/ROS_stm32f1_rosserial_USB_VCP (Itamar Eliakim)
- *  
+ *
  */
 
 #include "stm32f1xx_hal.h"
@@ -125,20 +125,20 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 
 /*
  * called when DMA transfer completes
- * update <xxxx>_tx_busy to let XXXX_Transmit function now when the DMA buffer is free 
+ * update <xxxx>_tx_busy to let XXXX_Transmit function now when the DMA buffer is free
  */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{   
+{
     if (huart->Instance == MASTER_USART_INSTANCE)
     {
-        if (__HAL_USART_GET_FLAG(&MASTER_USART_Handler, USART_FLAG_TC))        
+        if (__HAL_USART_GET_FLAG(&MASTER_USART_Handler, USART_FLAG_TC))
         {
             master_tx_busy = 0;
         }
     }
     if (huart->Instance == DRIVEMOTORS_USART_INSTANCE)
     {
-        if (__HAL_USART_GET_FLAG(&DRIVEMOTORS_USART_Handler, USART_FLAG_TC))        
+        if (__HAL_USART_GET_FLAG(&DRIVEMOTORS_USART_Handler, USART_FLAG_TC))
         {
             drivemotors_tx_busy = 0;
         }
@@ -154,132 +154,132 @@ void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
  * Master UART receive ISR
  * DriveMotors UART receive ISR
  * PANEL UART receive ISR
- */ 
+ */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{           
+{
        if (huart->Instance == MASTER_USART_INSTANCE)
        {
            /*
             * MASTER Message handling
             */
-           if (master_rx_buf_idx == 0 && master_rcvd_data == 0x55)           /* PREAMBLE */  
-           {                                  
-               master_rx_buf_crc = master_rcvd_data;        
-               master_rx_buf[master_rx_buf_idx++] = master_rcvd_data;                                   
-           }           
-           else if (master_rx_buf_idx == 1 && master_rcvd_data == 0xAA)        /* PREAMBLE */    
-           {                   
+           if (master_rx_buf_idx == 0 && master_rcvd_data == 0x55)           /* PREAMBLE */
+           {
+               master_rx_buf_crc = master_rcvd_data;
+               master_rx_buf[master_rx_buf_idx++] = master_rcvd_data;
+           }
+           else if (master_rx_buf_idx == 1 && master_rcvd_data == 0xAA)        /* PREAMBLE */
+           {
                master_rx_buf_crc += master_rcvd_data;
-               master_rx_buf[master_rx_buf_idx++] = master_rcvd_data;               
+               master_rx_buf[master_rx_buf_idx++] = master_rcvd_data;
            }
            else if (master_rx_buf_idx == 2) /* LEN */
-           {    
+           {
                master_rx_LENGTH = master_rcvd_data;
-               master_rx_buf[master_rx_buf_idx++] = master_rcvd_data;               
-               master_rx_buf_crc += master_rcvd_data;                              
+               master_rx_buf[master_rx_buf_idx++] = master_rcvd_data;
+               master_rx_buf_crc += master_rcvd_data;
            }
            else if (master_rx_buf_idx >= 3 && master_rx_buf_idx <= 2+master_rx_LENGTH) /* DATA bytes */
            {
                master_rx_buf[master_rx_buf_idx] = master_rcvd_data;
                master_rx_buf_idx++;
-               master_rx_buf_crc += master_rcvd_data;               
+               master_rx_buf_crc += master_rcvd_data;
            }
            else if (master_rx_buf_idx >= 3+master_rx_LENGTH)    /* CRC byte */
            {
                master_rx_CRC = master_rcvd_data;
                master_rx_buf[master_rx_buf_idx] = master_rcvd_data;
-               master_rx_buf_idx++;               
+               master_rx_buf_idx++;
                if (master_rx_buf_crc == master_rcvd_data)
-               {                   
+               {
                    // message valid, reader must set back STATUS to RX_WAIT
                    master_rx_STATUS = RX_VALID;
                    //master_rx_buf_idx = 0;
                }
                else
-               {                   
+               {
                    // crc failed, reader must set back STATUS to RX_WAIT
-                   master_rx_STATUS = RX_WAIT;                   
+                   master_rx_STATUS = RX_WAIT;
                    master_rx_buf_idx = 0;
                }
            }
            else
            {
                master_rx_STATUS = RX_WAIT;
-               master_rx_buf_idx = 0;               
-           }           
-       //    HAL_UART_Receive_IT(&MASTER_USART_Handler, &master_rcvd_data, 1);   // rearm interrupt           
+               master_rx_buf_idx = 0;
+           }
+       //    HAL_UART_Receive_IT(&MASTER_USART_Handler, &master_rcvd_data, 1);   // rearm interrupt
        }
        else if (huart->Instance == DRIVEMOTORS_USART_INSTANCE)
        {
          /*
             * DRIVE MOTORS Message handling
             */
-           if (drivemotors_rx_buf_idx == 0 && drivemotors_rcvd_data == 0x55)           /* PREAMBLE */  
-           {                                   
-               drivemotors_rx_buf_crc = drivemotors_rcvd_data;        
-               drivemotors_rx_buf[drivemotors_rx_buf_idx++] = drivemotors_rcvd_data;                                   
-           }           
-           else if (drivemotors_rx_buf_idx == 1 && drivemotors_rcvd_data == 0xAA)        /* PREAMBLE */    
-           {                                  
+           if (drivemotors_rx_buf_idx == 0 && drivemotors_rcvd_data == 0x55)           /* PREAMBLE */
+           {
+               drivemotors_rx_buf_crc = drivemotors_rcvd_data;
+               drivemotors_rx_buf[drivemotors_rx_buf_idx++] = drivemotors_rcvd_data;
+           }
+           else if (drivemotors_rx_buf_idx == 1 && drivemotors_rcvd_data == 0xAA)        /* PREAMBLE */
+           {
                drivemotors_rx_buf_crc += drivemotors_rcvd_data;
-               drivemotors_rx_buf[drivemotors_rx_buf_idx++] = drivemotors_rcvd_data;               
+               drivemotors_rx_buf[drivemotors_rx_buf_idx++] = drivemotors_rcvd_data;
            }
            else if (drivemotors_rx_buf_idx == 2) /* LEN */
-           {    
+           {
                drivemotors_rx_LENGTH = drivemotors_rcvd_data;
-               drivemotors_rx_buf[drivemotors_rx_buf_idx++] = drivemotors_rcvd_data;               
-               drivemotors_rx_buf_crc += drivemotors_rcvd_data;                              
+               drivemotors_rx_buf[drivemotors_rx_buf_idx++] = drivemotors_rcvd_data;
+               drivemotors_rx_buf_crc += drivemotors_rcvd_data;
            }
            else if (drivemotors_rx_buf_idx >= 3 && drivemotors_rx_buf_idx <= 2+drivemotors_rx_LENGTH) /* DATA bytes */
            {
                drivemotors_rx_buf[drivemotors_rx_buf_idx] = drivemotors_rcvd_data;
                drivemotors_rx_buf_idx++;
-               drivemotors_rx_buf_crc += drivemotors_rcvd_data;               
+               drivemotors_rx_buf_crc += drivemotors_rcvd_data;
            }
            else if (drivemotors_rx_buf_idx >= 3+drivemotors_rx_LENGTH)    /* CRC byte */
            {
                drivemotors_rx_CRC = drivemotors_rcvd_data;
                drivemotors_rx_buf[drivemotors_rx_buf_idx] = drivemotors_rcvd_data;
-               drivemotors_rx_buf_idx++;               
+               drivemotors_rx_buf_idx++;
                if (drivemotors_rx_buf_crc == drivemotors_rcvd_data)
-               {                   
+               {
                    // message valid, reader must set back STATUS to RX_WAIT
                    drivemotors_rx_STATUS = RX_VALID;
                    //drivemotors_rx_buf_idx = 0;
                }
                else
-               {                   
+               {
                    // crc failed, reader must set back STATUS to RX_WAIT
-                   drivemotors_rx_STATUS = RX_CRC_ERROR;                   
+                   drivemotors_rx_STATUS = RX_CRC_ERROR;
                    drivemotors_rx_buf_idx = 0;
                }
            }
            else
            {
                drivemotors_rx_STATUS = RX_WAIT;
-               drivemotors_rx_buf_idx = 0;               
-           }       
-       }       
+               drivemotors_rx_buf_idx = 0;
+           }
+       }
        else if(huart->Instance == PANEL_USART_INSTANCE)
        {
            PANEL_Handle_Received_Data(panel_rcvd_data);
-           HAL_UART_Receive_IT(&PANEL_USART_Handler, &panel_rcvd_data, 1);   // rearm interrupt               
+           HAL_UART_Receive_IT(&PANEL_USART_Handler, &panel_rcvd_data, 1);   // rearm interrupt
        }
 }
 
 
 int main(void)
-{    
-    uint8_t blademotor_init[] =  { 0x55, 0xaa, 0x12, 0x20, 0x80, 0x00, 0xac, 0x0d, 0x00, 0x02, 0x32, 0x50, 0x1e, 0x04, 0x00, 0x15, 0x21, 0x05, 0x0a, 0x19, 0x3c, 0xaa };    
+{
+    uint8_t blademotor_init[] =  { 0x55, 0xaa, 0x12, 0x20, 0x80, 0x00, 0xac, 0x0d, 0x00, 0x02, 0x32, 0x50, 0x1e, 0x04, 0x00, 0x15, 0x21, 0x05, 0x0a, 0x19, 0x3c, 0xaa };
     uint8_t drivemotors_init[] = { 0x55, 0xaa, 0x08, 0x10, 0x80, 0xa0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x37};
 
     HAL_Init();
     SystemClock_Config();
 
-    __HAL_RCC_AFIO_CLK_ENABLE();    
+    __HAL_RCC_AFIO_CLK_ENABLE();
 
     MX_DMA_Init();
-    
+
     MASTER_USART_Init();
 
     debug_printf("\r\n");
@@ -294,14 +294,14 @@ int main(void)
     LED_Init();
     debug_printf(" * LED initialized\r\n");
     TIM3_Init();
-    HAL_TIM_PWM_Start(&TIM3_Handle, TIM_CHANNEL_4);    
+    HAL_TIM_PWM_Start(&TIM3_Handle, TIM_CHANNEL_4);
     debug_printf(" * Timer3 (Beeper) initialized\r\n");
     TF4_Init();
     debug_printf(" * 24V switched on\r\n");
     PAC5223RESET_Init();
     debug_printf(" * PAC 5223 out of reset\r\n");
     PAC5210RESET_Init();
-    debug_printf(" * PAC 5210 out of reset\r\n");    
+    debug_printf(" * PAC 5210 out of reset\r\n");
     I2C_Init();
     debug_printf(" * Hard I2C (onboard Accelerometer) initialized\r\n");
     SW_I2C_Init();
@@ -325,14 +325,14 @@ int main(void)
         alt = IMU_ReadBarometerAltitudeMeters();
 
         debug_printf("temp: %f alt: %f \r\n", temp, alt);
-        HAL_Delay(1000);        
+        HAL_Delay(1000);
     }
-*/    
+*/
 
-    ADC1_Init();    
-    debug_printf(" * ADC1 initialized\r\n");    
-    TIM1_Init();   
-    debug_printf(" * Timer1 (Charge PWM) initialized\r\n");    
+    ADC1_Init();
+    debug_printf(" * ADC1 initialized\r\n");
+    TIM1_Init();
+    debug_printf(" * Timer1 (Charge PWM) initialized\r\n");
     MX_USB_DEVICE_Init();
     debug_printf(" * USB CDC initialized\r\n");
     PANEL_Init();
@@ -346,22 +346,22 @@ int main(void)
     // Init Drive Motors and Blade Motor
     #ifdef DRIVEMOTORS_USART_ENABLED
         DRIVEMOTORS_USART_Init();
-        debug_printf(" * Drive Motors USART initialized\r\n");        
+        debug_printf(" * Drive Motors USART initialized\r\n");
     #endif
     #ifdef BLADEMOTOR_USART_ENABLED
         BLADEMOTOR_USART_Init();
         debug_printf(" * Blade Motor USART initialized\r\n");
     #endif
-    
+
 
    // HAL_UART_Receive_IT(&MASTER_USART_Handler, &master_rcvd_data, 1);
     debug_printf(" * Master Interrupt enabled\r\n");
-    
-    //HAL_UART_Receive_IT(&DRIVEMOTORS_USART_Handler, &drivemotors_rcvd_data, 1);    
+
+    //HAL_UART_Receive_IT(&DRIVEMOTORS_USART_Handler, &drivemotors_rcvd_data, 1);
     HAL_UART_Receive_DMA(&DRIVEMOTORS_USART_Handler, &drivemotors_rcvd_data, 1);
     debug_printf(" * Drive Motors UART DMX (TX/TX) enabled\r\n");
 
-    HAL_UART_Receive_IT(&PANEL_USART_Handler, &panel_rcvd_data, 1);   // rearm interrupt               
+    HAL_UART_Receive_IT(&PANEL_USART_Handler, &panel_rcvd_data, 1);   // rearm interrupt
     debug_printf(" * Panel Interrupt enabled\r\n");
 
     HAL_GPIO_WritePin(LED_GPIO_PORT, LED_PIN, 0);
@@ -381,35 +381,35 @@ int main(void)
     HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_init, 22, HAL_MAX_DELAY);
     HAL_Delay(100);
     debug_printf(" * Blade Motor initialized\r\n");
-    debug_printf(" * HW Init completed\r\n");    
-    
+    debug_printf(" * HW Init completed\r\n");
+
     // Initialize Main Timers
-	NBT_init(&main_chargecontroller_nbt, 10);
+    NBT_init(&main_chargecontroller_nbt, 10);
     NBT_init(&main_statusled_nbt, 1000);
-	NBT_init(&main_emergency_nbt, 10);
-    debug_printf(" * NBT Main timers initialized\r\n");     
+    NBT_init(&main_emergency_nbt, 10);
+    debug_printf(" * NBT Main timers initialized\r\n");
 
     // Initialize ROS
     init_ROS();
-    debug_printf(" * ROS serial node initialized\r\n");     
-    debug_printf("\r\n >>> entering main loop ...\r\n\r\n"); 
-    // <chirp><chirp> means we are in the main loop 
+    debug_printf(" * ROS serial node initialized\r\n");
+    debug_printf("\r\n >>> entering main loop ...\r\n\r\n");
+    // <chirp><chirp> means we are in the main loop
     chirp();
     HAL_Delay(50);
     chirp();
     while (1)
-    {        
+    {
         chatter_handler();
-        motors_handler();    
+        motors_handler();
         panel_handler();
-        spinOnce();                       
+        spinOnce();
         if (drivemotors_rx_STATUS == RX_VALID)                    // valid frame received from DRIVEMOTORS USART
         {
             uint8_t direction = drivemotors_rx_buf[5];
 
             // we need to adjust for direction (+/-) !
             if ((direction & 0xc0) == 0xc0)
-            {            
+            {
                 left_direction = 1;
             }
             else if ((direction & 0x80) == 0x80)
@@ -421,7 +421,7 @@ int main(void)
                 left_direction = 0;
             }
             if ( (direction & 0x30) == 0x30)
-            {            
+            {
                 right_direction = 1;
             }
             else if ( (direction & 0x20) == 0x20)
@@ -432,7 +432,7 @@ int main(void)
             {
                 right_direction = 0;
             }
-                        
+
             left_encoder_val = (drivemotors_rx_buf[14]<<8)+drivemotors_rx_buf[13];
             right_encoder_val = (drivemotors_rx_buf[16]<<8)+drivemotors_rx_buf[15];
 
@@ -463,27 +463,27 @@ int main(void)
 
             //if (drivemotors_rx_buf[5]>>4)       // stuff is moving
            // {
-           //    msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);             
-           // }                    
+           //    msgPrint(drivemotors_rx_buf, drivemotors_rx_buf_idx);
+           // }
             drivemotors_rx_buf_idx = 0;
-            drivemotors_rx_STATUS = RX_WAIT;                    // ready for next message                        
-            HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED                         
-        }     
+            drivemotors_rx_STATUS = RX_WAIT;                    // ready for next message
+            HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED
+        }
         /* not used atm - we control the bot via ROS
         if (master_rx_STATUS == RX_VALID)                        // valid frame received by MASTER USART
         {
-            
+
                 int i;
-                //debug_printf("master_rx_buf_crc = 0x%02x\r\n", master_rx_buf_crc);            
-                //debug_printf("master_rx_CRC = 0x%02x\r\n", master_rx_CRC);            
-                //debug_printf("master_rx_LENGTH = %d\r\n", master_rx_LENGTH);            
+                //debug_printf("master_rx_buf_crc = 0x%02x\r\n", master_rx_buf_crc);
+                //debug_printf("master_rx_CRC = 0x%02x\r\n", master_rx_CRC);
+                //debug_printf("master_rx_LENGTH = %d\r\n", master_rx_LENGTH);
                 debug_printf("tx: ");
                 for (i=0;i<master_rx_buf_idx;i++)
                 {
                     debug_printf(" %02x", master_rx_buf[i]);
-                }            
+                }
                 debug_printf("\r\n");
-            
+
 
             // until we have some kind of protocol we discrimate what goes where simply by message length
             // drive motors always get a 12 byte message relayed
@@ -496,23 +496,23 @@ int main(void)
             master_rx_STATUS = RX_WAIT; // ready for next message
             master_rx_buf_idx = 0;
 
-            HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED             
+            HAL_GPIO_TogglePin(LED_GPIO_PORT, LED_PIN);         // flash LED
         }
         */
-        broadcast_handler();   
+        broadcast_handler();
         if (NBT_handler(&main_chargecontroller_nbt))
-	    {            
-			ChargeController();
-	    }
+        {
+            ChargeController();
+        }
         if (NBT_handler(&main_statusled_nbt))
-	    {            
-			StatusLEDUpdate();          
-            // debug_printf("master_rx_STATUS: %d  drivemotors_rx_buf_idx: %d  cnt_usart2_overrun: %x\r\n", master_rx_STATUS, drivemotors_rx_buf_idx, cnt_usart2_overrun);           
-	    }
-		if (NBT_handler(&main_emergency_nbt))
-		{
-			EmergencyController();
-		}
+        {
+            StatusLEDUpdate();
+            // debug_printf("master_rx_STATUS: %d  drivemotors_rx_buf_idx: %d  cnt_usart2_overrun: %x\r\n", master_rx_STATUS, drivemotors_rx_buf_idx, cnt_usart2_overrun);
+        }
+        if (NBT_handler(&main_emergency_nbt))
+        {
+            EmergencyController();
+        }
     }
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // we never get here ...
@@ -554,7 +554,7 @@ void MASTER_USART_Init()
     MASTER_USART_Handler.Init.Mode = USART_MODE_TX_RX;         // Transceiver mode
 
     HAL_UART_Init(&MASTER_USART_Handler); // HAL_UART_Init() Will enable  UART1
-    
+
     /* UART4 DMA Init */
     /* UART4_TX Init */
     hdma_uart4_tx.Instance = DMA2_Channel5;
@@ -574,7 +574,7 @@ void MASTER_USART_Init()
 
     // enable IRQ
     HAL_NVIC_SetPriority(MASTER_USART_IRQ, 0, 0);
-	HAL_NVIC_EnableIRQ(MASTER_USART_IRQ);     
+    HAL_NVIC_EnableIRQ(MASTER_USART_IRQ);
 
     __HAL_UART_ENABLE_IT(&MASTER_USART_Handler, UART_IT_TC);
 }
@@ -591,7 +591,7 @@ void DRIVEMOTORS_USART_Init()
     // enable port and usart clocks
     DRIVEMOTORS_USART_GPIO_CLK_ENABLE();
     DRIVEMOTORS_USART_USART_CLK_ENABLE();
-    
+
     // RX
     GPIO_InitStruct.Pin = DRIVEMOTORS_USART_RX_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -616,11 +616,11 @@ void DRIVEMOTORS_USART_Init()
     DRIVEMOTORS_USART_Handler.Init.Parity = UART_PARITY_NONE;       // No parity bit
     DRIVEMOTORS_USART_Handler.Init.HwFlowCtl = UART_HWCONTROL_NONE; // No hardware flow control
     DRIVEMOTORS_USART_Handler.Init.Mode = USART_MODE_TX_RX;         // Transceiver mode
-    
-    HAL_UART_Init(&DRIVEMOTORS_USART_Handler); 
+
+    HAL_UART_Init(&DRIVEMOTORS_USART_Handler);
 
     /* USART2 DMA Init */
-    /* USART2_RX Init */    
+    /* USART2_RX Init */
     hdma_usart2_rx.Instance = DMA1_Channel6;
     hdma_usart2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_usart2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -651,9 +651,9 @@ void DRIVEMOTORS_USART_Init()
     }
     __HAL_LINKDMA(&DRIVEMOTORS_USART_Handler,hdmatx,hdma_usart2_tx);
 
-    // enable IRQ      
+    // enable IRQ
     HAL_NVIC_SetPriority(DRIVEMOTORS_USART_IRQ, 0, 0);
-    HAL_NVIC_EnableIRQ(DRIVEMOTORS_USART_IRQ);   
+    HAL_NVIC_EnableIRQ(DRIVEMOTORS_USART_IRQ);
 
     __HAL_UART_ENABLE_IT(&DRIVEMOTORS_USART_Handler, UART_IT_TC);
 }
@@ -669,7 +669,7 @@ void BLADEMOTOR_USART_Init()
     // enable port and usart clocks
     BLADEMOTOR_USART_GPIO_CLK_ENABLE();
     BLADEMOTOR_USART_USART_CLK_ENABLE();
-    
+
     // RX
     GPIO_InitStruct.Pin = BLADEMOTOR_USART_RX_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -694,9 +694,9 @@ void BLADEMOTOR_USART_Init()
     BLADEMOTOR_USART_Handler.Init.Parity = UART_PARITY_NONE;       // No parity bit
     BLADEMOTOR_USART_Handler.Init.HwFlowCtl = UART_HWCONTROL_NONE; // No hardware flow control
     BLADEMOTOR_USART_Handler.Init.Mode = USART_MODE_TX_RX;         // Transceiver mode
-    
 
-    HAL_UART_Init(&BLADEMOTOR_USART_Handler); 
+
+    HAL_UART_Init(&BLADEMOTOR_USART_Handler);
 }
 
 
@@ -761,7 +761,7 @@ void PAC5210RESET_Init()
 
 
     // PD7 (->PAC5210 PC4), PD8 (->PAC5210 PC3)
-     __HAL_RCC_GPIOD_CLK_ENABLE();    
+     __HAL_RCC_GPIOD_CLK_ENABLE();
     GPIO_InitStruct.Pin = GPIO_PIN_7| GPIO_PIN_8;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -826,7 +826,7 @@ void Error_Handler(void)
     {
         debug_printf("Error Handler reached, oops\r\n");
         chirp();
-        HAL_Delay(50);    
+        HAL_Delay(50);
     }
     /* USER CODE END Error_Handler_Debug */
 }
@@ -886,7 +886,7 @@ void SystemClock_Config(void)
   * @brief I2C Initialization Function
   * @param None
   * @retval None
-  */ 
+  */
 void I2C_Init(void)
 {
    GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -1045,7 +1045,7 @@ void ADC1_Init(void)
 
   /* USER CODE END TIM1_Init 2 */
 
-  GPIO_InitTypeDef GPIO_InitStruct = {0};  
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   CHARGE_GPIO_CLK_ENABLE();
   /** TIM1 GPIO Configuration
   PA7 or PE8     -----> TIM1_CH1N
@@ -1058,9 +1058,9 @@ void ADC1_Init(void)
   #ifdef BOARD_BLUEPILL
     __HAL_AFIO_REMAP_TIM1_PARTIAL();        // to use PA7/8 it is a partial remap
   #endif
-  #ifdef BOARD_YARDFORCE500 
+  #ifdef BOARD_YARDFORCE500
      __HAL_AFIO_REMAP_TIM1_ENABLE();        // to use PE8/9 it is a full remap
-  #endif  
+  #endif
 }
 
 
@@ -1068,7 +1068,7 @@ void ADC1_Init(void)
   * @brief TIM3 Initialization Function
   *
   * Beeper is on PB1 (PWM)
-  * 
+  *
   * @param None
   * @retval None
   */
@@ -1127,7 +1127,7 @@ void TIM3_Init(void)
   /**TIM3 GPIO Configuration
   PB1     ------> TIM3_CH4
   */
-  GPIO_InitTypeDef GPIO_InitStruct = {0};  
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   GPIO_InitStruct.Pin = GPIO_PIN_1;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1282,7 +1282,7 @@ void ADC_Test()
         adc_volt= (float)(adc_val/4095.0f)*3.3f*16;     //PA2 has a 1:16 divider
         debug_printf(" Charge Voltage: %2.2fV (adc:%d)\r\n", adc_volt, adc_val);
         debug_printf("\r\n");
-  
+
 }
 
 
@@ -1329,7 +1329,7 @@ void I2C_Test(void)
     dev_ctx.handle = &I2C_Handle;
     HAL_Delay(50);   // wait for bootup
     /* Check device ID */
-    lis3dh_device_id_get(&dev_ctx, &reg.byte);    
+    lis3dh_device_id_get(&dev_ctx, &reg.byte);
     if (reg.byte != LIS3DH_ID) {
         while (1) {
             /* manage here device not found */
@@ -1352,7 +1352,7 @@ void I2C_Test(void)
     while (1) {
         lis3dh_reg_t reg;
         /* Read output only if new value available */
-        lis3dh_xl_data_ready_get(&dev_ctx, &reg.byte);        
+        lis3dh_xl_data_ready_get(&dev_ctx, &reg.byte);
         if (reg.byte) {
             /* Read accelerometer data */
             memset(data_raw_acceleration, 0x00, 3 * sizeof(int16_t));
@@ -1364,13 +1364,13 @@ void I2C_Test(void)
             acceleration_mg[2] =
                 lis3dh_from_fs2_hr_to_mg(data_raw_acceleration[2]);
 
-            debug_printf("Acceleration [mg]: X=%4.2f\tY=%4.2f\tZ=%4.2f\r\n", acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);        
+            debug_printf("Acceleration [mg]: X=%4.2f\tY=%4.2f\tZ=%4.2f\r\n", acceleration_mg[0], acceleration_mg[1], acceleration_mg[2]);
         }
 
         lis3dh_temp_data_ready_get(&dev_ctx, &reg.byte);
 
-        if (reg.byte) {            
-            // Read temperature data 
+        if (reg.byte) {
+            // Read temperature data
             memset(&data_raw_temperature, 0x00, sizeof(int16_t));
             lis3dh_temperature_raw_get(&dev_ctx, &data_raw_temperature);
             temperature_degC =
@@ -1385,8 +1385,8 @@ void I2C_Test(void)
  * needs to be called frequently
  */
 void ChargeController(void)
-{        
-        charge_voltage =  ADC_ChargeVoltage();            
+{
+        charge_voltage =  ADC_ChargeVoltage();
         charge_current = ADC_ChargeCurrent();
         battery_voltage = ADC_BatteryVoltage();
         if (charge_voltage >= MIN_CHARGE_VOLTAGE ) {
@@ -1403,7 +1403,7 @@ void ChargeController(void)
         else {
             chargecontrol_pwm_val = MIN_CHARGE_PWM;
         }
-        TIM1->CCR1 = chargecontrol_pwm_val;  
+        TIM1->CCR1 = chargecontrol_pwm_val;
 }
 
 /*
@@ -1494,7 +1494,7 @@ void EmergencyController(void)
         {
             if (now - play_button_started >= PLAY_BUTTON_CLEAR_EMERGENCY_MILLIS) {
                 emergency_state = 0;
-				StatusLEDUpdate();
+                StatusLEDUpdate();
             }
         }
     }
@@ -1526,9 +1526,9 @@ void StatusLEDUpdate(void)
             PANEL_Set_LED(PANEL_LED_CHARGING, PANEL_LED_OFF);
             chargecontrol_is_charging = 0;
         }
-            
-        // show a lowbat warning if battery voltage drops below LOW_BAT_THRESHOLD ? (random guess, needs more testing or a compare to the stock firmware)            
-        // if goes below LOW_BAT_THRESHOLD-1 we increase led flash frequency        
+
+        // show a lowbat warning if battery voltage drops below LOW_BAT_THRESHOLD ? (random guess, needs more testing or a compare to the stock firmware)
+        // if goes below LOW_BAT_THRESHOLD-1 we increase led flash frequency
         if (battery_voltage <= LOW_BAT_THRESHOLD)
         {
             PANEL_Set_LED(PANEL_LED_BATTERY_LOW, PANEL_LED_FLASH_SLOW); // low
@@ -1540,8 +1540,8 @@ void StatusLEDUpdate(void)
         else
         {
             PANEL_Set_LED(PANEL_LED_BATTERY_LOW, PANEL_LED_OFF); // bat ok
-        }                
-        debug_printf(" > Chg Voltage: %2.2fV | Bat Voltage %2.2fV\r\n", charge_voltage, battery_voltage);                           
+        }
+        debug_printf(" > Chg Voltage: %2.2fV | Bat Voltage %2.2fV\r\n", charge_voltage, battery_voltage);
 }
 
 /*
@@ -1552,16 +1552,16 @@ void StatusLEDUpdate(void)
  */
 void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, uint8_t right_dir)
 {
-    uint8_t direction = 0x0;            
+    uint8_t direction = 0x0;
     static uint8_t drivemotors_msg[DRIVEMOTORS_MSG_LEN] =  { 0x55, 0xaa, 0x8, 0x10, 0x80, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
-    
+
     drivemotors_msg[5] = direction;
     drivemotors_msg[6] = left_speed;
     drivemotors_msg[7] = right_speed;
 
     // calc direction bits
     if (right_dir == 1)
-    {        
+    {
         direction |= (0x20 + 0x10);
     }
     else
@@ -1569,8 +1569,8 @@ void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, u
         direction |= 0x20;
     }
     if (left_dir == 1)
-    {   
-        direction |= (0x40 + 0x80);                             
+    {
+        direction |= (0x40 + 0x80);
     }
     else
     {
@@ -1579,7 +1579,7 @@ void setDriveMotors(uint8_t left_speed, uint8_t right_speed, uint8_t left_dir, u
     // update direction byte in message
     drivemotors_msg[5] = direction;
     // calc crc
-    drivemotors_msg[DRIVEMOTORS_MSG_LEN-1] = crcCalc(drivemotors_msg, DRIVEMOTORS_MSG_LEN-1);    
+    drivemotors_msg[DRIVEMOTORS_MSG_LEN-1] = crcCalc(drivemotors_msg, DRIVEMOTORS_MSG_LEN-1);
   // msgPrint(drivemotors_msg, DRIVEMOTORS_MSG_LEN);
     // transmit via UART
     DRIVEMOTORS_Transmit(drivemotors_msg, DRIVEMOTORS_MSG_LEN);
@@ -1599,13 +1599,13 @@ void setBladeMotor(uint8_t on_off)
 
     if (on_off)
     {
-        HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_on, sizeof(blademotor_on), HAL_MAX_DELAY);    
+        HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_on, sizeof(blademotor_on), HAL_MAX_DELAY);
     }
     else
     {
         HAL_UART_Transmit(&BLADEMOTOR_USART_Handler, blademotor_off, sizeof(blademotor_off), HAL_MAX_DELAY);
     }
-        
+
 }
 
 /*
@@ -1618,7 +1618,7 @@ void msgPrint(uint8_t *msg, uint8_t msg_len)
      for (i=0;i<msg_len;i++)
      {
         debug_printf(" %02x", msg[i]);
-     }            
+     }
      debug_printf("\r\n");
 }
 
@@ -1641,10 +1641,10 @@ uint8_t crcCalc(uint8_t *msg, uint8_t msg_len)
  * 2khz chirp for beep_time_ms
  */
 void chirp()
-{    
-    TIM3_Handle.Instance->CCR4 = 10;   
+{
+    TIM3_Handle.Instance->CCR4 = 10;
     HAL_Delay(100);
-    TIM3_Handle.Instance->CCR4 = 0;  
+    TIM3_Handle.Instance->CCR4 = 0;
 }
 
 /*
@@ -1652,17 +1652,17 @@ void chirp()
  */
 void vprint(const char *fmt, va_list argp)
 {
-    char string[200];    
+    char string[200];
     if(0 < vsprintf(string,fmt,argp)) // build string
     {
         MASTER_Transmit((unsigned char*)string, strlen(string));
 
-        // HAL_UART_Transmit(&MASTER_USART_Handler, (uint8_t*)string, strlen(string), HAL_MAX_DELAY); // send message via UART               
+        // HAL_UART_Transmit(&MASTER_USART_Handler, (uint8_t*)string, strlen(string), HAL_MAX_DELAY); // send message via UART
         //while (master_tx_busy) {  }
-        //master_tx_busy = 1;        
+        //master_tx_busy = 1;
         //master_tx_buffer_len = strlen(string);
         //memcpy(master_tx_buffer, string, master_tx_buffer_len);
-        //HAL_UART_Transmit_DMA(&MASTER_USART_Handler, (uint8_t*)master_tx_buffer, master_tx_buffer_len); // send message via UART                
+        //HAL_UART_Transmit_DMA(&MASTER_USART_Handler, (uint8_t*)master_tx_buffer, master_tx_buffer_len); // send message via UART
         // HAL_Delay(10);
     }
 }
@@ -1670,7 +1670,7 @@ void vprint(const char *fmt, va_list argp)
 /*
  * Debug print
  */
-void debug_printf(const char *fmt, ...) 
+void debug_printf(const char *fmt, ...)
 {
     va_list argp;
     va_start(argp, fmt);
@@ -1682,26 +1682,26 @@ void debug_printf(const char *fmt, ...)
  * Send message via MASTER USART (DMA Normal Mode)
  */
 void MASTER_Transmit(uint8_t *buffer, uint8_t len)
-{    
+{
     // wait until tx buffers are free (send complete)
     while (master_tx_busy) {  }
-    master_tx_busy = 1;  
-    // copy into our master_tx_buffer 
+    master_tx_busy = 1;
+    // copy into our master_tx_buffer
     master_tx_buffer_len = len;
     memcpy(master_tx_buffer, buffer, master_tx_buffer_len);
-    HAL_UART_Transmit_DMA(&MASTER_USART_Handler, (uint8_t*)master_tx_buffer, master_tx_buffer_len); // send message via UART       
+    HAL_UART_Transmit_DMA(&MASTER_USART_Handler, (uint8_t*)master_tx_buffer, master_tx_buffer_len); // send message via UART
 }
 
 /*
  * Send message via MASTER USART (DMA Normal Mode)
  */
 void DRIVEMOTORS_Transmit(uint8_t *buffer, uint8_t len)
-{    
+{
     // wait until tx buffers are free (send complete)
     while (drivemotors_tx_busy) {  }
-    drivemotors_tx_busy = 1;  
-    // copy into our master_tx_buffer 
+    drivemotors_tx_busy = 1;
+    // copy into our master_tx_buffer
     drivemotors_tx_buffer_len = len;
     memcpy(drivemotors_tx_buffer, buffer, drivemotors_tx_buffer_len);
-    HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)drivemotors_tx_buffer, drivemotors_tx_buffer_len); // send message via UART       
+    HAL_UART_Transmit_DMA(&DRIVEMOTORS_USART_Handler, (uint8_t*)drivemotors_tx_buffer, drivemotors_tx_buffer_len); // send message via UART
 }

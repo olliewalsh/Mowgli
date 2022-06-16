@@ -7,9 +7,9 @@
   ******************************************************************************
   * @attention
   *
-  * Some code taken from the various Arduino drivers referenced at 
+  * Some code taken from the various Arduino drivers referenced at
   * https://www.pololu.com/product/2739
-  * 
+  *
   * This IMU consists of:
   *     LSM6DS33 (gyro and accelerometer)
   *     LIS3MDL (magnetometer)
@@ -25,9 +25,9 @@
 
 
 /**
-  * @brief  Test Device 
+  * @brief  Test Device
   * Perform any tests possible before actually enabling and using the device,
-  * for example check the i2c address and whoami registers if existing  
+  * for example check the i2c address and whoami registers if existing
   *
   * @param  ctx      read / write interface definitions
   * @param  val      get the values of hpcf in reg CTRL_REG2
@@ -72,12 +72,12 @@ uint8_t IMU_TestDevice(void)
         return(0);
     }
     // all tests passed
-    return(1); 
+    return(1);
 }
 
 /**
   * @brief  Initialize IMU
-  * LSM6DS33 +/- 2g acceleration and 245 gps for gyro    
+  * LSM6DS33 +/- 2g acceleration and 245 gps for gyro
   */
 void IMU_Init(void)
 {
@@ -115,7 +115,7 @@ void IMU_Init(void)
     // BAROMETER
     // 0xB0 = 0b10110000
     // PD = 1 (active mode);  ODR = 011 (12.5 Hz pressure & temperature output data rate)
-    SW_I2C_UTIL_WRITE(LPS25H_ADDRESS, LPS25H_CTRL_REG1, 0xB0);      
+    SW_I2C_UTIL_WRITE(LPS25H_ADDRESS, LPS25H_CTRL_REG1, 0xB0);
 }
 
 /**
@@ -139,7 +139,7 @@ void IMU_ReadAccelerometer(float *x, float *y, float *z)
 */
     *x =  (int16_t)(accel_xyz[1] << 8 | accel_xyz[0]) * DS33_G_FACTOR * MS2_PER_G;
     *y =  (int16_t)(accel_xyz[3] << 8 | accel_xyz[2]) * DS33_G_FACTOR * MS2_PER_G;
-    *z =  (int16_t)(accel_xyz[5] << 8 | accel_xyz[4]) * DS33_G_FACTOR * MS2_PER_G;    
+    *z =  (int16_t)(accel_xyz[5] << 8 | accel_xyz[4]) * DS33_G_FACTOR * MS2_PER_G;
 }
 
 /**
@@ -151,14 +151,14 @@ void IMU_ReadGyro(float *x, float *y, float *z)
     uint8_t gyro_xyz[6];   // 2 bytes each
 
     SW_I2C_UTIL_Read_Multi(DS33_ADDRESS, DS33_OUTX_L_G, 6, (uint8_t*)&gyro_xyz);
-    
+
     *x = (int16_t)(gyro_xyz[1] << 8 | gyro_xyz[0]) * DS33_DPS_FACTOR * RAD_PER_G;
     *y = (int16_t)(gyro_xyz[3] << 8 | gyro_xyz[2]) * DS33_DPS_FACTOR * RAD_PER_G;
-    *z = (int16_t)(gyro_xyz[5] << 8 | gyro_xyz[4]) * DS33_DPS_FACTOR * RAD_PER_G;    
+    *z = (int16_t)(gyro_xyz[5] << 8 | gyro_xyz[4]) * DS33_DPS_FACTOR * RAD_PER_G;
 }
 
 /**
-  * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z  
+  * @brief  Reads the 3 magnetometer channels and stores them in *x,*y,*z
   * units are tesla uncalibrated
   */
 void IMU_ReadMagnetometerRaw(float *x, float *y, float *z)
@@ -169,7 +169,7 @@ void IMU_ReadMagnetometerRaw(float *x, float *y, float *z)
 
     *x = (int16_t)(mag_xyz[1] << 8 | mag_xyz[0]) * LIS3MDL_GAUSS_FACTOR * T_PER_GAUSS;
     *y = (int16_t)(mag_xyz[3] << 8 | mag_xyz[2]) * LIS3MDL_GAUSS_FACTOR * T_PER_GAUSS;
-    *z = (int16_t)(mag_xyz[5] << 8 | mag_xyz[4]) * LIS3MDL_GAUSS_FACTOR * T_PER_GAUSS;    
+    *z = (int16_t)(mag_xyz[5] << 8 | mag_xyz[4]) * LIS3MDL_GAUSS_FACTOR * T_PER_GAUSS;
 }
 
 /**
@@ -179,14 +179,14 @@ void IMU_ReadMagnetometerRaw(float *x, float *y, float *z)
   */
 int16_t IMU_BarometerTempRaw(void)
 {
-    uint8_t temp[2];   
+    uint8_t temp[2];
     int16_t retval; // temp
-    
+
     // assert MSB to enable register address auto-increment
     SW_I2C_UTIL_Read_Multi(LPS25H_ADDRESS, LPS25H_TEMP_OUT_L | (1 << 7), 2, (uint8_t*)&temp);
 
     retval = (int16_t)(temp[1] << 8 | temp[0]);
-    return(retval);    
+    return(retval);
 }
 
 /**
@@ -196,14 +196,14 @@ int16_t IMU_BarometerTempRaw(void)
   */
 int32_t IMU_BarometerPressureRaw(void)
 {
-    uint8_t pressure[4]={0,0,0,0};   
+    uint8_t pressure[4]={0,0,0,0};
     int32_t retval; // pressure (24bit)
 
     // assert MSB to enable register address auto-increment
     SW_I2C_UTIL_Read_Multi(LPS25H_ADDRESS, LPS25H_PRESS_OUT_XL | (1 << 7), 3, (uint8_t*)&pressure);
 
     retval = (int32_t)(pressure[2] << 16 | pressure[1] << 8 | pressure[0]);
-    return(retval);    
+    return(retval);
 }
 
 /**
