@@ -6,7 +6,6 @@
 extern "C" {
 #endif
 
-
 /*
  * at the moment this really only works for BOARD_YARDFORCE500
  * the bluepill config is broken because it hasnt been used in a while - will be fixed later or removed ;-)
@@ -23,7 +22,7 @@ extern "C" {
     #define PANEL_TYPE_YARDFORCE_500_CLASSIC    1
     // #define PANEL_TYPE_YARDFORCE_900_ECO   1
 
-    #ifdef OPENMOWER_INTERFACE
+    #if defined OPENMOWER_INTERFACE
         // OpenMower expects 993 ticks per revolution, we get 165
         #define TICK_MULTIPLIER 6
     #else
@@ -54,7 +53,9 @@ extern "C" {
     #define PANEL_USART_ENABLED 1
 
     // our IMU hangs of a bigbanged I2C bus on J18
+    #ifndef SOFT_I2C_ENABLED
     #define SOFT_I2C_ENABLED 1
+    #endif
 
     #define LED_PIN GPIO_PIN_2
     #define LED_GPIO_PORT GPIOB

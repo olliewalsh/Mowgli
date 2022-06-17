@@ -27,13 +27,21 @@
 #include "nbt.h"
 #include "geometry_msgs/Twist.h"
 
+#ifdef OPENMOWER_INTERFACE
+#include "mower_msgs/MowerControlSrv.h"
+#include "mower_msgs/EmergencyStopSrv.h"
+#include "mower_msgs/Status.h"
+#include "mower_msgs/ESCStatus.h"
+#endif
+
+#if SOFT_I2C_ENABLED
 // IMU
 #include "imu/imu.h"
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/MagneticField.h"
 #include "sensor_msgs/Temperature.h"
 #include "mowgli/magnetometer.h"
-
+#endif
 
 #define MAX_MPS	  	0.6		 	// Allow maximum speed of 0.6 m/s
 #define PWM_PER_MPS 300.0		// PWM value of 300 means 1 m/s bot speed
@@ -41,7 +49,7 @@
 #define WHEEL_BASE  0.325		// The distance between the center of the wheels in meters
 #define WHEEL_DIAMETER 0.198 	// The diameter of the wheels in meters
 
-#define BROADCAST_NBT_TIME_MS 50 	// 50ms interval where we set drive motors and read back values
+#define BROADCAST_NBT_TIME_MS 20 	// 20ms interval where we set drive motors and read back values
 
 extern uint8_t RxBuffer[RxBufferSize];
 struct ringbuffer rb;
@@ -59,6 +67,10 @@ static uint8_t right_dir=0;
 static uint8_t blade_on_off=0;
 
 ros::NodeHandle nh;
+
+#ifdef OPENMOWER_INTERFACE
+bool emergency_high_level = false;
+#endif
 
 // TF
 geometry_msgs::Quaternion quat;
@@ -102,6 +114,9 @@ double y = 0.0;
 double theta = 1.57;
 */
 
+#if defined OPENMOWER_INTERFACE
+mower_msgs::Status status_msg;
+#else
 // std_msgs::String str_msg;
 std_msgs::Float32 f32_battery_voltage_msg;
 std_msgs::Float32 f32_charge_voltage_msg;
@@ -112,16 +127,22 @@ std_msgs::Bool bool_charging_state_msg;
 nav_msgs::Odometry odom_msg;
 std_msgs::UInt32 left_encoder_ticks_msg;
 std_msgs::UInt32 right_encoder_ticks_msg;
+#endif
 
+#if defined SOFT_I2C_ENABLED && SOFT_I2C_ENABLED
 // IMU
 sensor_msgs::Imu imu_msg;
 sensor_msgs::MagneticField imu_mag_msg;
 sensor_msgs::MagneticField imu_mag_calibration_msg;
 //mowgli::magnetometer imu_mag_calibration_msg;
+#endif
 
 /*
  * PUBLISHERS
  */
+#if defined OPENMOWER_INTERFACE
+ros::Publisher pubStatus("mower/status", &status_msg);
+#else
 // ros::Publisher chatter("version", &str_msg);
 ros::Publisher pubBatteryVoltage("battery_voltage", &f32_battery_voltage_msg);
 ros::Publisher pubChargeVoltage("charge_voltage", &f32_charge_voltage_msg);
@@ -132,26 +153,51 @@ ros::Publisher pubBladeState("blade_state", &bool_blade_state_msg);
 ros::Publisher pubOdom("odom", &odom_msg);
 ros::Publisher pubLeftEncoderTicks("left_encoder_ticks", &left_encoder_ticks_msg);
 ros::Publisher pubRightEncoderTicks("right_encoder_ticks", &right_encoder_ticks_msg);
+#endif
 
+#if SOFT_I2C_ENABLED
 // IMU
 ros::Publisher pubIMU("imu/data_raw", &imu_msg);
 ros::Publisher pubIMUMag("imu/mag", &imu_mag_msg);
 ros::Publisher pubIMUMagCalibration("imu/mag_calibration", &imu_mag_calibration_msg);
+#endif
 
 /*
  * SUBSCRIBERS
  */
 extern "C" void CommandVelocityMessageCb(const geometry_msgs::Twist& msg);
+ros::Subscriber<geometry_msgs::Twist> subCommandVelocity("cmd_vel", CommandVelocityMessageCb);
+#if defined OPENMOWER_INTERFACE
+#else
 extern "C" void CommandBladeOnMessageCb(const std_msgs::Bool& msg);
 extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg);
-
-ros::Subscriber<geometry_msgs::Twist> subCommandVelocity("cmd_vel", CommandVelocityMessageCb);
 ros::Subscriber<std_msgs::Bool> subBladeOn("cmd_blade_on", CommandBladeOnMessageCb);
 ros::Subscriber<std_msgs::Bool> subBladeOff("cmd_blade_off", CommandBladeOffMessageCb);
+#endif
+
 // TODO ros::Subscriber<std_msgs::Bool> subLEDSet("cmd_panel_led_set", CommandLEDSetMessageCb);
 // TODO ros::Subscriber<std_msgs::Bool> subLEDFlashSlow("cmd_panel_led_flash_slow", CommandLEDFlashSlowMessageCb);
 // TODO ros::Subscriber<std_msgs::Bool> subLEDFlashFast("cmd_panel_led_flash_fast", CommandLEDFlashFastMessageCb);
 // TODO ros::Subscriber<std_msgs::Bool> subLEDClear("cmd_panel_led_clear", CommandLEDClearMessageCb);
+
+/*
+ * SERVICES
+ */
+
+#if defined OPENMOWER_INTERFACE
+extern "C" void SetMowEnableCb(mower_msgs::MowerControlSrvRequest &req, mower_msgs::MowerControlSrvResponse &res);
+ros::ServiceServer<mower_msgs::MowerControlSrvRequest, mower_msgs::MowerControlSrvResponse> srvSetMowEnable(
+	"mower_service/mow_enabled",
+	(ros::ServiceServer<mower_msgs::MowerControlSrvRequest, mower_msgs::MowerControlSrvResponse>::CallbackT) SetMowEnableCb
+);
+
+extern "C" void SetEmergencyStopCb(mower_msgs::EmergencyStopSrvRequest &req, mower_msgs::EmergencyStopSrvResponse &res);
+ros::ServiceServer<mower_msgs::EmergencyStopSrvRequest, mower_msgs::EmergencyStopSrvResponse> srvSetEmergencyStop(
+	"mower_service/emergency",
+	(ros::ServiceServer<mower_msgs::EmergencyStopSrvRequest, mower_msgs::EmergencyStopSrvResponse>::CallbackT)SetEmergencyStopCb
+);
+#else
+#endif
 
 /*
  * NON BLOCKING TIMERS
@@ -161,6 +207,36 @@ static nbt_t publish_nbt;
 static nbt_t motors_nbt;
 static nbt_t panel_nbt;
 static nbt_t broadcast_nbt;
+
+extern "C" bool is_emergency() {
+#if defined OPENMOWER_INTERFACE
+    return emergency_high_level || emergency_state;
+#else
+    return emergency_state;
+#endif
+}
+
+#if defined OPENMOWER_INTERFACE
+
+extern "C" void SetMowEnableCb(mower_msgs::MowerControlSrvRequest &req, mower_msgs::MowerControlSrvResponse &res) {
+    //if (req.mow_enabled && !is_emergency()) {
+    if(req.mow_enabled) {
+            blade_on_off = true;
+    } else {
+            blade_on_off = false;
+    }
+}
+
+extern "C" void SetEmergencyStopCb(mower_msgs::EmergencyStopSrvRequest &req, mower_msgs::EmergencyStopSrvResponse &res) {
+    if (req.emergency) {
+        emergency_state |= 0x1;
+    } else {
+        emergency_state = 0;
+    }
+    emergency_high_level = req.emergency;
+}
+
+#else
 
 /*
  * receive and parse cmd_blade_on messages
@@ -188,6 +264,7 @@ extern "C" void CommandBladeOffMessageCb(const std_msgs::Bool& msg)
     }
 }
 
+#endif
 
 /*
  * receive and parse cmd_vel messages
@@ -256,7 +333,8 @@ extern "C" void chatter_handler()
           str_msg.data = version;
           chatter.publish(&str_msg);
           */
-
+#if defined OPENMOWER_INTERFACE
+#else
           f32_battery_voltage_msg.data = battery_voltage;
           pubBatteryVoltage.publish(&f32_battery_voltage_msg);
 
@@ -271,6 +349,7 @@ extern "C" void chatter_handler()
 
           bool_charging_state_msg.data =  chargecontrol_is_charging;
           pubChargeingState.publish(&bool_charging_state_msg);
+#endif
 
           //bool_blade_state_msg.data = true; // TODO: read blade status
 //		  pubBladeState.publish(&bool_blade_state_msg);
@@ -287,7 +366,7 @@ extern "C" void motors_handler()
 {
       if (NBT_handler(&motors_nbt))
       {
-        if (emergency_state)
+        if (is_emergency())
         {
             setDriveMotors(0,0,0,0);
             setBladeMotor(0);
@@ -325,6 +404,56 @@ extern "C" void broadcast_handler()
 {
       if (NBT_handler(&broadcast_nbt))
       {
+#if defined OPENMOWER_INTERFACE
+        status_msg.stamp = nh.now();
+        status_msg.mower_status = mower_msgs::Status::MOWER_STATUS_OK;
+        status_msg.raspberry_pi_power = 1;
+        status_msg.gps_power = 1;
+        status_msg.esc_power = 1;
+        status_msg.emergency = is_emergency();
+        status_msg.v_battery = battery_voltage;
+        status_msg.v_charge = charge_voltage;
+        status_msg.charge_current = charge_current;
+
+        auto l_status = mower_msgs::ESCStatus();
+        if(left_wheel_speed_val > 0x05) {
+                l_status.status = mower_msgs::ESCStatus::ESC_STATUS_RUNNING;
+        }
+        else {
+                l_status.status = mower_msgs::ESCStatus::ESC_STATUS_OK;
+        }
+        l_status.tacho = left_encoder_ticks;
+        l_status.temperature_motor = 30;
+        l_status.temperature_pcb = 30;
+
+        auto r_status = mower_msgs::ESCStatus();
+        if(right_wheel_speed_val > 0x05) {
+                r_status.status = mower_msgs::ESCStatus::ESC_STATUS_RUNNING;
+        }
+        else {
+                r_status.status = mower_msgs::ESCStatus::ESC_STATUS_OK;
+        }
+        r_status.tacho = right_encoder_ticks;
+        r_status.temperature_motor = 30;
+        r_status.temperature_pcb = 30;
+
+        auto m_status = mower_msgs::ESCStatus();
+        if(blade_on_off) {
+                m_status.status = mower_msgs::ESCStatus::ESC_STATUS_RUNNING;
+        }
+        else {
+                m_status.status = mower_msgs::ESCStatus::ESC_STATUS_OK;
+        }
+        m_status.temperature_motor = 30;
+        m_status.temperature_pcb = 30;
+
+        status_msg.left_esc_status = l_status;
+        status_msg.right_esc_status = r_status;
+        status_msg.mow_esc_status = m_status;
+        pubStatus.publish(&status_msg);
+
+
+#else
         // z = BROADCAST_NBT_TIME_MS/1000;
         // x = right_wheel_speed_val;
         // y = left_wheel_speed_val;
@@ -440,8 +569,9 @@ extern "C" void broadcast_handler()
 
         broadcaster.sendTransform(t);
 */
+#endif
 
-
+#if defined SOFT_I2C_ENABLED && SOFT_I2C_ENABLED == 1
         ////////////////////////////////////////
         // IMU
         ////////////////////////////////////////
@@ -494,6 +624,7 @@ extern "C" void broadcast_handler()
         //imu_mag_calibration_msg.y = imu_y;
         //imu_mag_calibration_msg.z = imu_z;
         //pubIMUMagCalibration.publish(&imu_mag_calibration_msg); // this is what ros-calibration_imu expects
+#endif
       }
 }
 
@@ -522,6 +653,9 @@ extern "C" void init_ROS()
     broadcaster.init(nh);
 
     // Initialize Pubs
+#if defined OPENMOWER_INTERFACE
+    nh.advertise(pubStatus);
+#else
     nh.advertise(pubBatteryVoltage);
     nh.advertise(pubChargeVoltage);
     nh.advertise(pubChargeCurrent);
@@ -531,14 +665,27 @@ extern "C" void init_ROS()
     nh.advertise(pubChargeingState);
     nh.advertise(pubLeftEncoderTicks);
     nh.advertise(pubRightEncoderTicks);
+#endif
+
+#if defined SOFT_I2C_ENABLED && SOFT_I2C_ENABLED == 1
     nh.advertise(pubIMU);
     nh.advertise(pubIMUMag);
     nh.advertise(pubIMUMagCalibration);
+#endif
 
     // Initialize Subs
     nh.subscribe(subCommandVelocity);
+#if defined OPENMOWER_INTERFACE
+#else
     nh.subscribe(subBladeOn);
     nh.subscribe(subBladeOff);
+#endif
+	// Initialize Services
+#if defined OPENMOWER_INTERFACE
+	nh.advertiseService(srvSetMowEnable);
+	nh.advertiseService(srvSetEmergencyStop);
+#else
+#endif
 
     // Initialize Timers
     NBT_init(&publish_nbt, 1000);
